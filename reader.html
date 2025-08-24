@@ -9,7 +9,7 @@
   <body>
 
 
-    <!-- 預備拍顯示 -->
+    <!-- 倒數數字 -->
     <div id="countdownDisplay"></div>
 
     <!-- 頂部工具欄 -->
@@ -189,7 +189,7 @@
       }
 
 
-// 統一的和弦行構建函數
+// 樂譜建立
 function buildChordLine(lyrics, chords, options = {}) {
   const {
     showFingering = false,
@@ -211,13 +211,15 @@ function buildChordLine(lyrics, chords, options = {}) {
     return `<span class="${SCORE_CONFIG.cssClasses.chordName}">${displayChord}</span>`;
   };
 
-  const chordBlockHeight = showFingering ? '95px' : '1.5em';
+  const chordBlockHeight = showFingering ? '75px' : '1.5em';
 
-  const createBlock = (chordContent, lyricContent, blockChordHeight = chordBlockHeight) =>
-    `<div style="display: flex; flex-direction: column; align-items: flex-start; margin-right: 4px;">
+  const createBlock = (chordContent, lyricContent, blockChordHeight = chordBlockHeight) => {
+    const lyricClass = showFingering ? 'lyric-content with-fingering' : 'lyric-content';
+    return `<div style="display: flex; flex-direction: column; align-items: flex-start; margin-right: 4px;">
       <div style="height: ${blockChordHeight}; margin-bottom: 2px; display: flex; align-items: flex-end;">${chordContent}</div>
-      <div class="lyric-content">${lyricContent || '&nbsp;'}</div>
+      <div class="${lyricClass}">${lyricContent || '&nbsp;'}</div>
     </div>`;
+  };
 
   const wrapContainer = (content) =>
     `<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; margin-bottom: 5px;">${content}</div>`;

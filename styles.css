@@ -371,22 +371,16 @@ body {
   align-items: flex-end;
 }
 
-.chord-content.with-fingering {
-  height: 95px;
-}
-
-.chord-content.without-fingering {
-  height: 1.5em;
-}
-
 .lyric-content {
   white-space: pre;
   font-size: inherit;
   font-weight: normal;
   font-family: var(--lyrics) !important;
+  padding: 0 0 0 0;
+}
+.lyric-content.with-fingering {
   padding: 0 0 0 10px;
 }
-
 .score {
   padding: 24px;
   background: var(--card);

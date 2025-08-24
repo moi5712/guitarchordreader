@@ -1,8 +1,12 @@
 # 吉他和弦譜閱讀器｜編輯器
 
-這是一個由moi5712開發的簡易 **吉他譜編輯與演奏工具**，目的是創造乾淨、輕量的介面以便使用，僅作為個人工具分享。
+這是一個由moi5712開發的簡易離線吉他譜編輯與演奏工具，目的是創造乾淨、輕量的介面以便使用，僅作為個人工具分享。
 
-[線上展示（請下載sheet資料夾至本地做測試） ↗](https://moi5712.github.io/guitarchordreader/library.html)
+## 線上試用
+
+- [首頁/樂譜庫（請下載sheet資料夾至本地做測試） ↗](https://moi5712.github.io/guitarchordreader/library.html)
+- [閱讀器（請下載sheet資料夾至本地做測試） ↗](https://moi5712.github.io/guitarchordreader/reader.html)
+- [編輯器 ↗](https://moi5712.github.io/guitarchordreader/reader.html)
 
 ## 內容說明
 
@@ -53,6 +57,22 @@
     | 樂譜庫 | 即時同步 | 需手動載入 |
     | 設置需求 | 需要安裝 Node.js 12.0+ | 任何現代瀏覽器即可 |
 
+## 樂譜格式說明
+```
+#title: 填寫歌名
+#artist: 作者
+#key: 調性
+#bpm: 速度
+#time: 拍號
+#capo: 移調夾
+
+      不彈  空弦  第3格
+       ↓     ↓     ↓
+@D/C: -1, 3, 0, 2, 3, 2   //指定特定和弦指法
+
+[verse] //段落標記
+[C]內填入和弦[G]寫上歌詞
+```
 ## 常見問題
 
 #### Q：我的樂譜檔案顯示不出來怎麼辦？

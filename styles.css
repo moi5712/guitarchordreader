@@ -384,6 +384,7 @@ body {
   font-size: inherit;
   font-weight: normal;
   font-family: var(--lyrics) !important;
+  padding: 0 0 0 10px;
 }
 
 .score {

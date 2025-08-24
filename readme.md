@@ -2,6 +2,8 @@
 
 這是一個由moi5712開發的簡易 **吉他譜編輯與演奏工具**，目的是創造乾淨、輕量的介面以便使用，僅作為個人工具分享。
 
+[線上展示（請下載sheet資料夾至本地做測試） ↗](https://moi5712.github.io/guitarchordreader/library.html)
+
 ## 內容說明
 
 - library.html：首頁/樂譜庫。

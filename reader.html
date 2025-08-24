@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>吉他譜閱讀器</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+
+
+    <!-- 預備拍顯示 -->
+    <div id="countdownDisplay"></div>
+
+    <!-- 頂部工具欄 -->
+    <header class="topbar">
+
+      <button id="homeBtn" class="btn primary">首頁</button>
+      <button id="editBtn" class="btn secondary">編輯模式</button>
+      <button id="importBtn" class="btn">載入</button>
+      <input
+        id="importFile"
+        type="file"
+        accept=".txt,.gtab"
+        style="display: none"
+      />
+
+      <div class="sp"></div>
+      <label class="tiny">字級</label>
+      <input
+        id="fontPx"
+        class="input"
+        type="number"
+        value="18"
+        min="10"
+        max="30"
+        style="width: 72px"
+      />
+      <label class="tiny">行距</label>
+      <input
+        id="lineGap"
+        class="input"
+        type="number"
+        value="14"
+        min="0"
+        max="100"
+        style="width: 72px"
+      />
+      <label class="tiny">變調</label>
+      <input
+        id="transpose"
+        class="input"
+        type="number"
+        value="0"
+        min="-6"
+        max="6"
+        style="width: 72px"
+      />
+      <label class="tiny">
+        <input id="showFingering" type="checkbox" style="margin-right: 4px" />
+        指法
+      </label>
+      <label class="tiny">
+        <input
+          id="countdownEnabled"
+          type="checkbox"
+          style="margin-right: 4px"
+        />
+        預備拍
+      </label>
+    </header>
+
+    <main class="wrap">
+      <section class="card">
+        <header class="meta">
+          <h1 id="title" class="title"></h1>
+          <p id="subtitle" class="subtitle"></p>
+        </header>
+        <article id="score" class="score"></article>
+      </section>
+    </main>
+
+    <div class="floating tiny">
+      <button id="playBtn" class="btn primary">▶︎ 開始</button>
+      <label class="tiny">速度</label>
+      <input
+        id="speed"
+        class="speed-slider"
+        type="range"
+        value="30"
+        min="10"
+        max="100"
+        style="width: 200px"
+      />
+    </div>
+
+    <!-- 引入和弦數據庫 -->
+    <script src="chord-database.js"></script>
+    <script src="functions.js"></script>
+    <script>
+      // 閱讀器狀態
+      let song = {
+        meta: { title: "", artist: "", key: "", bpm: "", time: "", capo: "" },
+        sections: [],
+      };
+
+      let customChordFingerings = {};
+      let playing = false,
+        rafId = null,
+        targets = [],
+        lastTs = null;
+      let countdownTimeoutId = null,
+        accumulatedScroll = 0;
+
+      const countdownDisplay = document.getElementById("countdownDisplay");
+      const playBtn = document.getElementById("playBtn");
+      const countdownEnabledCheckbox =
+        document.getElementById("countdownEnabled");
+
+      // 和弦變調
+      const chordMap = {
+        C: 0,
+        "C#": 1,
+        Db: 1,
+        D: 2,
+        "D#": 3,
+        Eb: 3,
+        E: 4,
+        F: 5,
+        "F#": 6,
+        Gb: 6,
+        G: 7,
+        "G#": 8,
+        Ab: 8,
+        A: 9,
+        "A#": 10,
+        Bb: 10,
+        B: 11,
+      };
+
+      const chordNames = [
+        "C",
+        "C#",
+        "D",
+        "D#",
+        "E",
+        "F",
+        "F#",
+        "G",
+        "G#",
+        "A",
+        "A#",
+        "B",
+      ];
+
+      function transposeChord(chord, semitones) {
+        if (!chord) return chord;
+        const m = chord.match(/^([A-G][#b]?)(.*)$/);
+        if (!m) return chord;
+
+        const root = m[1];
+        const rest = m[2] || '';
+
+        const rootIndex = chordMap[root];
+        if (rootIndex === undefined) return chord;
+        const newRoot = chordNames[(rootIndex + semitones + 12) % 12];
+
+        // 若存在轉位（slash chord），同時變調斜線後的低音音名
+        const slashPos = rest.indexOf('/');
+        if (slashPos !== -1) {
+          const pre = rest.slice(0, slashPos); // 後綴維持不變（m, dim, aug, sus, 7, maj7...）
+          const bassPart = rest.slice(slashPos + 1);
+
+          const bm = bassPart.match(/^([A-G][#b]?)(.*)$/);
+          if (bm) {
+            const bassRoot = bm[1];
+            const bassRest = bm[2] || '';
+            const bassIndex = chordMap[bassRoot];
+            if (bassIndex === undefined) {
+              return newRoot + rest; // 低音不是音名則不處理
+            }
+            const newBass = chordNames[(bassIndex + semitones + 12) % 12];
+            return newRoot + pre + '/' + newBass + bassRest;
+          }
+        }
+
+        // 非轉位和弦：僅變調主音，其餘字串保持
+        return newRoot + rest;
+      }
+
+
+// 統一的和弦行構建函數
+function buildChordLine(lyrics, chords, options = {}) {
+  const {
+    showFingering = false,
+    transposeValue = 0,
+    customChordFingerings = {},
+    chordFingerings = {}
+  } = options;
+
+  const getChordContent = (chord) => {
+    if (showFingering) {
+      return createChordDiagram(chord, { 
+        transposeValue, 
+        customChordFingerings, 
+        chordFingerings 
+      });
+    }
+    
+    const displayChord = transposeChord(chord, transposeValue);
+    return `<span class="${SCORE_CONFIG.cssClasses.chordName}">${displayChord}</span>`;
+  };
+
+  const chordBlockHeight = showFingering ? '95px' : '1.5em';
+
+  const createBlock = (chordContent, lyricContent, blockChordHeight = chordBlockHeight) =>
+    `<div style="display: flex; flex-direction: column; align-items: flex-start; margin-right: 4px;">
+      <div style="height: ${blockChordHeight}; margin-bottom: 2px; display: flex; align-items: flex-end;">${chordContent}</div>
+      <div class="lyric-content">${lyricContent || '&nbsp;'}</div>
+    </div>`;
+
+  const wrapContainer = (content) =>
+    `<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; margin-bottom: 5px;">${content}</div>`;
+
+  // 無和弦情況
+  if (chords.length === 0) {
+    return lyrics.trim()
+      ? wrapContainer(createBlock("", lyrics, chordBlockHeight))
+      : "<div></div>";
+  }
+
+  const sortedChords = [...chords].sort((a, b) => a.pos - b.pos);
+
+  // 只有和弦沒有歌詞
+  if (!lyrics.trim()) {
+    return wrapContainer(
+      sortedChords
+        .map((chord) => createBlock(getChordContent(chord.chord), "&nbsp;"))
+        .join("")
+    );
+  }
+
+  // 正常情況：有和弦也有歌詞
+  let blocks = [];
+
+  if (sortedChords[0]?.pos > 0) {
+    const initialLyrics = lyrics.slice(0, sortedChords[0].pos).trim();
+    if (initialLyrics) {
+      blocks.push(createBlock("", initialLyrics, chordBlockHeight));
+    }
+  }
+
+  sortedChords.forEach((chord, index) => {
+    const nextPos = sortedChords[index + 1]?.pos || lyrics.length;
+    let lyricPart = lyrics.slice(chord.pos, nextPos).trim();
+
+    const currentPos = chord.pos;
+    const isLastChordAtThisPosition =
+      index === sortedChords.length - 1 ||
+      sortedChords[index + 1].pos !== currentPos;
+
+    if (!isLastChordAtThisPosition) {
+      lyricPart = "";
+    }
+
+    const displayLyrics = lyricPart || "&nbsp;";
+    blocks.push(createBlock(getChordContent(chord.chord), displayLyrics));
+  });
+
+  return wrapContainer(blocks.join(""));
+}
+
+
+      // 獲取當前樂譜內容
+      function getCurrentSheetContent() {
+        // 如果沒有載入任何樂譜，返回空字符串
+        if (!song.sections.length || song.sections.every(sec => !sec.lines.length)) {
+          return "";
+        }
+
+        // 如果有保存的原始內容，直接返回（最準確）
+        if (song.originalContent) {
+          return song.originalContent;
+        }
+
+        // 否則重建內容
+        let content = "";
+
+        // 添加 meta 信息
+        if (song.meta.title) content += `#title: ${song.meta.title}\n`;
+        if (song.meta.artist) content += `#artist: ${song.meta.artist}\n`;
+        if (song.meta.key) content += `#key: ${song.meta.key}\n`;
+        if (song.meta.bpm) content += `#bpm: ${song.meta.bpm}\n`;
+        if (song.meta.time) content += `#time: ${song.meta.time}\n`;
+        if (song.meta.capo) content += `#capo: ${song.meta.capo}\n`;
+
+        // 添加自定義和弦指法
+        Object.keys(customChordFingerings).forEach(chordName => {
+          const fingering = customChordFingerings[chordName];
+          content += `@${chordName}: ${fingering.join(",")}\n`;
+        });
+
+        if (content) content += "\n";
+
+        // 重建樂譜內容
+        song.sections.forEach((section, sectionIndex) => {
+          // 添加段落標記
+          const sectionKey = section.type || "verse";
+          content += `[${sectionKey}]\n`;
+
+          // 添加段落內容
+          section.lines.forEach(line => {
+            if (line.raw) {
+              // 如果有原始內容，直接使用
+              content += line.raw + "\n";
+            } else {
+              // 否則重建內容
+              let lineContent = "";
+              let lastPos = 0;
+
+              // 按位置排序和弦
+              const sortedChords = [...line.chords].sort((a, b) => a.pos - b.pos);
+
+              sortedChords.forEach(chord => {
+                // 添加和弦前的歌詞
+                lineContent += line.lyrics.slice(lastPos, chord.pos);
+                // 添加和弦
+                lineContent += `[${chord.chord}]`;
+                lastPos = chord.pos;
+              });
+
+              // 添加剩餘的歌詞
+              lineContent += line.lyrics.slice(lastPos);
+              content += lineContent + "\n";
+            }
+          });
+
+          // 段落間添加空行（除了最後一個段落）
+          if (sectionIndex < song.sections.length - 1) {
+            content += "\n";
+          }
+        });
+
+        return content;
+      }
+
+      // 載入樂譜
+      function importScore(text) {
+        customChordFingerings = {};
+        const meta = {};
+        const lines = text.split(/\r?\n/);
+        let i = 0;
+
+        while (i < lines.length) {
+          const line = lines[i].trim();
+          if (!line) {
+            i++;
+            continue;
+          }
+          if (!line.startsWith("#") && !line.startsWith("@")) {
+            break;
+          }
+
+          if (line.startsWith("#")) {
+            const m = line.match(/^#(\w+):\s*(.*)$/);
+            if (m) {
+              meta[m[1]] = m[2];
+            }
+          } else if (line.startsWith("@")) {
+            const m = line.match(/^@([^:]+):\s*(.*)$/);
+            if (m) {
+              const chordName = m[1].trim();
+              const fingeringStr = m[2].trim();
+              try {
+                const fingering = fingeringStr.split(",").map((s) => {
+                  const val = s.trim();
+                  return val === "-1" ? -1 : parseInt(val);
+                });
+
+                if (
+                  fingering.length === 6 &&
+                  fingering.every(
+                    (f) => Number.isInteger(f) && f >= -1 && f <= 12
+                  )
+                ) {
+                  customChordFingerings[chordName] = fingering;
+                  console.log(
+                    `載入自定義指法: ${chordName} = [${fingering.join(", ")}]`
+                  );
+                } else {
+                  console.warn(`無效的指法格式: ${lines[i]}`);
+                }
+              } catch (e) {
+                console.warn(`解析指法失敗: ${lines[i]}`);
+              }
+            }
+          }
+          i++;
+        }
+
+        while (i < lines.length && !lines[i].trim()) {
+          i++;
+        }
+        const scoreText = lines.slice(i).join("\n");
+        
+        // 保存原始內容以便重建
+        const originalContent = text;
+        song.originalContent = originalContent;
+        
+        song.sections = parseInput(scoreText);
+
+        song.meta.title = meta.title || song.meta.title;
+        song.meta.artist = meta.artist || song.meta.artist;
+        song.meta.key = meta.key || song.meta.key;
+        song.meta.bpm = meta.bpm ? Number(meta.bpm) : song.meta.bpm;
+        song.meta.time = meta.time || song.meta.time;
+        song.meta.capo = meta.capo ? Number(meta.capo) : song.meta.capo;
+        render();
+      }
+
+      function render() {
+        const titleElement = document.getElementById("title");
+        if (song.meta.artist) {
+          titleElement.innerHTML = `
+            <div style="font-size: 1em; font-weight: bold; margin-bottom: 4px;">${
+              song.meta.title || ""
+            }</div>
+            <div style="font-size: 0.75em; font-weight: normal; color: #666;">${
+              song.meta.artist
+            }</div>
+          `;
+        } else {
+          titleElement.textContent = song.meta.title || "";
+        }
+
+        const subtitle = [
+          song.meta.key ? `Key ${song.meta.key}` : "",
+          song.meta.capo ? `Capo ${song.meta.capo}` : "",
+          song.meta.bpm ? `BPM ${song.meta.bpm}` : "",
+          song.meta.time ? song.meta.time : "",
+        ]
+          .filter(Boolean)
+          .join(" · ");
+        document.getElementById("subtitle").textContent = subtitle;
+
+        const score = document.getElementById("score");
+        score.innerHTML = "";
+        const fontSize = Math.max(
+          10,
+          Math.min(30, +document.getElementById("fontPx").value || 15)
+        );
+        score.style.fontSize = fontSize + "px";
+        const gap = Math.max(
+          0,
+          Math.min(100, +document.getElementById("lineGap").value || 14)
+        );
+
+        if (
+          !song.sections.length ||
+          song.sections.every((sec) => !sec.lines.length)
+        ) {
+          document.getElementById("title").textContent = "";
+          document.getElementById("subtitle").textContent = "";
+          const tip = document.createElement("div");
+          tip.style.textAlign = "center";
+          tip.style.color = "#9aa4c4";
+          tip.style.padding = "48px 0";
+          tip.style.cursor = "pointer";
+          tip.style.borderRadius = "12px";
+          tip.style.transition = "all 0.2s ease";
+          tip.innerHTML = `
+            <div style="font-size: 16px; margin-bottom: 4px;">點擊載入樂譜</div>
+          `;
+
+          tip.addEventListener("mouseenter", function () {
+            this.style.backgroundColor = "#f8f9fa";
+            this.style.color = "#495057";
+          });
+
+          tip.addEventListener("mouseleave", function () {
+            this.style.backgroundColor = "transparent";
+            this.style.color = "#9aa4c4";
+          });
+
+          tip.addEventListener("click", function () {
+            document.getElementById("importFile").click();
+          });
+
+          score.appendChild(tip);
+        } else {
+          song.sections.forEach((sec) => {
+            const h = document.createElement("div");
+            h.className = "sec";
+            h.style.borderLeftColor = sec.color;
+            h.textContent = sec.label;
+            score.appendChild(h);
+
+            sec.lines.forEach((ln, i) => {
+              const wrap = document.createElement("div");
+              wrap.className = "line";
+              wrap.dataset.section = sec.id;
+              wrap.dataset.line = i;
+              wrap.style.marginBottom = gap + "px";
+
+              const lineContentSpan = document.createElement("span");
+              lineContentSpan.className = "chords-and-lyrics";
+
+              const showFingering =
+                document.getElementById("showFingering").checked;
+              const transposeValue =
+                +document.getElementById("transpose").value || 0;
+
+              lineContentSpan.innerHTML = buildChordLine(ln.lyrics, ln.chords, {
+                showFingering,
+                transposeValue,
+                customChordFingerings,
+                chordFingerings,
+                transposeChord,
+              });
+
+              wrap.appendChild(lineContentSpan);
+              score.appendChild(wrap);
+            });
+          });
+        }
+        collectTargets();
+      }
+
+      // 自動捲動功能
+      function collectTargets() {
+        const scoreEl = document.getElementById("score");
+        const scoreTop = scoreEl.getBoundingClientRect().top;
+        targets = [...scoreEl.querySelectorAll(".line[data-section]")].map(
+          (el) => {
+            const rect = el.getBoundingClientRect();
+            return {
+              el,
+              top: rect.top - scoreTop + window.scrollY,
+            };
+          }
+        );
+      }
+
+      function startScroll() {
+        playing = true;
+        collectTargets();
+        lastTs = null;
+        rafId = requestAnimationFrame(loop);
+        playBtn.textContent = "⏹ 停止";
+        playBtn.classList.remove("primary");
+      }
+
+      function togglePlay() {
+        if (playing) {
+          playing = false;
+          cancelAnimationFrame(rafId);
+          clearTimeout(countdownTimeoutId);
+          countdownDisplay.style.display = "none";
+          accumulatedScroll = 0;
+          playBtn.textContent = "▶︎ 開始";
+          playBtn.classList.add("primary");
+          playBtn.disabled = false;
+        } else {
+          const isCountdownEnabled = countdownEnabledCheckbox.checked;
+          const bpm = song.meta.bpm || 120;
+          const beatDuration = 60000 / bpm;
+
+          if (isCountdownEnabled) {
+            let count = 4;
+            playBtn.disabled = true;
+            countdownDisplay.style.display = "block";
+
+            function doCountdown() {
+              if (count > 0) {
+                countdownDisplay.textContent = count;
+                count--;
+                countdownTimeoutId = setTimeout(doCountdown, beatDuration);
+              } else {
+                countdownDisplay.style.display = "none";
+                playBtn.disabled = false;
+                startScroll();
+              }
+            }
+            doCountdown();
+          } else {
+            startScroll();
+          }
+        }
+      }
+
+      function loop(ts) {
+        if (!playing) return;
+
+        if (!lastTs) lastTs = ts;
+        const dt = ts - lastTs;
+        lastTs = ts;
+
+        const speed = +document.getElementById("speed").value;
+        const scrollDist = (speed * dt) / 1000;
+        accumulatedScroll += scrollDist;
+
+        if (accumulatedScroll >= 1) {
+          const pixelsToScroll = Math.floor(accumulatedScroll);
+          window.scrollBy({
+            top: pixelsToScroll,
+            behavior: "auto",
+          });
+          accumulatedScroll -= pixelsToScroll;
+        }
+
+        const scrollHeight = document.documentElement.scrollHeight;
+        const clientHeight = document.documentElement.clientHeight;
+        const currentScrollY = window.scrollY;
+        const scrollThreshold = 20;
+
+        if (currentScrollY + clientHeight >= scrollHeight - scrollThreshold) {
+          togglePlay();
+          window.scrollTo({ top: scrollHeight, behavior: "smooth" });
+          console.log("捲動到底部，自動停止。");
+          return;
+        }
+
+        rafId = requestAnimationFrame(loop);
+      }
+
+      // 事件綁定
+      function init() {
+        document.getElementById("editBtn").onclick = function () {
+          // 保存當前閱讀器設置到 localStorage
+          const settings = {
+            fontSize: document.getElementById("fontPx").value,
+            lineGap: document.getElementById("lineGap").value,
+            transpose: document.getElementById("transpose").value,
+            showFingering: document.getElementById("showFingering").checked,
+            countdownEnabled: document.getElementById("countdownEnabled").checked,
+            speed: document.getElementById("speed").value
+          };
+          localStorage.setItem("readerSettings", JSON.stringify(settings));
+
+          // 獲取當前樂譜內容
+          const currentContent = getCurrentSheetContent();
+          
+          // 如果有內容，將其編碼到 URL 中傳遞給編輯器
+          let url = "editor.html";
+          if (currentContent && currentContent.trim()) {
+            const encodedContent = encodeURIComponent(currentContent);
+            url += `?content=${encodedContent}`;
+          }
+          
+          window.location.href = url;
+        };
+
+        playBtn.onclick = togglePlay;
+        document.getElementById("homeBtn").onclick = function () {
+          window.location.href = "library.html";
+        };
+        document.getElementById("importBtn").onclick = function () {
+          document.getElementById("importFile").click();
+        };
+
+
+        document
+          .getElementById("importFile")
+          .addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+              importScore(evt.target.result);
+            };
+            reader.readAsText(file, "utf-8");
+          });
+
+        ["fontPx", "lineGap", "transpose"].forEach((id) =>
+          document.getElementById(id).addEventListener("input", render)
+        );
+
+        document
+          .getElementById("showFingering")
+          .addEventListener("change", render);
+        countdownEnabledCheckbox.addEventListener("change", () => {
+          if (!playing) {
+            playBtn.disabled = false;
+          }
+        });
+
+        // 恢復之前保存的設置
+        const savedSettings = localStorage.getItem("readerSettings");
+        if (savedSettings) {
+          try {
+            const settings = JSON.parse(savedSettings);
+            document.getElementById("fontPx").value = settings.fontSize || 18;
+            document.getElementById("lineGap").value = settings.lineGap || 14;
+            document.getElementById("transpose").value = settings.transpose || 0;
+            document.getElementById("showFingering").checked = settings.showFingering || false;
+            document.getElementById("countdownEnabled").checked = settings.countdownEnabled || false;
+            document.getElementById("speed").value = settings.speed || 30;
+          } catch (e) {
+            console.log("無法解析保存的設置");
+          }
+        }
+
+        song.sections = [];
+        render();
+      }
+
+      window.onload = function() {
+        init();
+        
+        // 檢查 URL 參數中是否有內容
+        const urlParams = new URLSearchParams(window.location.search);
+        const contentParam = urlParams.get('content');
+        if (contentParam) {
+          const decodedContent = decodeURIComponent(contentParam);
+          importScore(decodedContent);
+        }
+      };
+    </script>
+  </body>
+</html>

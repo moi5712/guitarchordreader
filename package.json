@@ -1,0 +1,32 @@
+{
+  "name": "guitar-sheet-reader-editor",
+  "version": "1.0.0",
+  "description": "吉他譜閱讀器｜編輯器 - 支援 ChordPro 格式的吉他譜管理工具",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "guitar",
+    "chord",
+    "music",
+    "chordpro",
+    "sheet-music",
+    "guitar-tabs"
+  ],
+  "author": "Guitar Sheet Reader/Editor",
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "."
+  },
+  "homepage": ".",
+  "bugs": {
+    "url": "."
+  }
+}

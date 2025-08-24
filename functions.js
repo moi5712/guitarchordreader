@@ -58,8 +58,8 @@ const SCORE_CONFIG = {
   // 和弦指法圖設置
   chordDiagram: {
     width: 65,
-    baseHeight: 90,
-    fretHeight: 12,
+    baseHeight: 70,
+    fretHeight: 8,
     stringSpacing: 8,
     fretStartY: 28,
     maxFrets: 5
@@ -398,41 +398,40 @@ function createChordDiagram(chord, options = {}) {
   const height = baseHeight + (numFrets - 5) * fretHeight;
 
   let svg = `<svg width="${width}" height="${height}" class="chord-diagram" style="display: inline-block; vertical-align: top; margin: 0 2px;">`;
-  svg += `<rect width="${width}" height="${height}" fill="white" stroke="#ddd" stroke-width="1" rx="4"/>`;
-  svg += `<text x="${width/2-2}" y="14" text-anchor="middle" font-size="18" font-weight="bold" fill="#333" class="chord-diagram-title">${transposedChord}</text>`;
+  svg += `<text x="${width/2-2}" y="14" text-anchor="middle" font-size="16" font-weight="bold" fill="#333" class="chord-diagram-title">${transposedChord}</text>`;//和弦文字
 
   if (startFret > 1) {
-    svg += `<text x="4" y="${fretStartY + fretHeight/2 + 4}" text-anchor="middle" font-size="14" font-weight="bold" fill="#000">${startFret}</text>`;
+    svg += `<text x="3" y="${fretStartY + fretHeight/2 + 4}" text-anchor="middle" font-size="14" font-weight="bold" fill="#000">${startFret}</text>`;
   }
 
   for (let i = 0; i < 6; i++) {
     const x = 10 + i * stringSpacing;
-    svg += `<line x1="${x}" y1="${fretStartY}" x2="${x}" y2="${fretStartY + numFrets * fretHeight}" stroke="#666" stroke-width="1"/>`;
+    svg += `<line x1="${x}" y1="${fretStartY}" x2="${x}" y2="${fretStartY + numFrets * fretHeight}" stroke="#666" stroke-width="1"/>`;//弦(直線)
   }
 
   for (let i = 0; i <= numFrets; i++) {
     const y = fretStartY + i * fretHeight;
     const isNut = (startFret === 1 && i === 0);
-    svg += `<line x1="10" y1="${y}" x2="${10 + 5 * stringSpacing}" y2="${y}" stroke="#666" stroke-width="${isNut ? 2 : 1}"/>`;
+    svg += `<line x1="9.5" y1="${y}" x2="${10.5 + 5 * stringSpacing}" y2="${y}" stroke="#666" stroke-width="${isNut ? 2 : 1}"/>`;//品(橫線)
   }
 
   const barres = detectBarres(fingering, startFret, endFret);
   barres.forEach(barre => {
-    const y = fretStartY + (barre.fret - startFret + 0.5) * fretHeight;
+    const y = fretStartY + (barre.fret - startFret + 0.53) * fretHeight;
     const x1 = 10 + barre.fromString * stringSpacing;
     const x2 = 10 + barre.toString * stringSpacing;
-    svg += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#333" stroke-width="6" stroke-linecap="round" opacity="0.8"/>`;
+    svg += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#333" stroke-width="5.5" stroke-linecap="round" />`;//大橫按橫線
   });
 
   fingering.forEach((fret, stringIndex) => {
     const x = 10 + stringIndex * stringSpacing;
     if (fret === 0) {
-      svg += `<circle cx="${x}" cy="22" r="3" fill="none" stroke="#333" stroke-width="1"/>`;
+      svg += `<circle cx="${x}" cy="22" r="2.75" fill="none" stroke="#333" stroke-width="1"/>`;//空弦
     } else if (fret === -1) {
-      svg += `<text x="${x}" y="27" text-anchor="middle" font-size="16" fill="#666">×</text>`;
+      svg += `<text x="${x}" y="26" text-anchor="middle" font-size="15" fill="#333">×</text>`;//不彈
     } else if (fret >= startFret && fret <= endFret) {
-      const y = fretStartY + (fret - startFret + 0.5) * fretHeight;
-      svg += `<circle cx="${x}" cy="${y}" r="3" fill="#333"/>`;
+      const y = fretStartY + (fret - startFret + 0.53) * fretHeight;
+      svg += `<circle cx="${x}" cy="${y}" r="2.75" fill="#333"/>`;//指法圓點
     }
   });
 

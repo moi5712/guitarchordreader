@@ -6,7 +6,7 @@
 
 - [首頁/樂譜庫（請下載sheet資料夾至本地做測試） ↗](https://moi5712.github.io/guitarchordreader/library.html)
 - [閱讀器（請下載sheet資料夾至本地做測試） ↗](https://moi5712.github.io/guitarchordreader/reader.html)
-- [編輯器 ↗](https://moi5712.github.io/guitarchordreader/reader.html)
+- [編輯器 ↗](https://moi5712.github.io/guitarchordreader/editor.html)
 
 ## 內容說明
 

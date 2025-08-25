@@ -28,8 +28,8 @@ And it was all yellow[G][Gsus]
 [Cma7]You [Em7]know, you know [D]I love you so
 [Cma7]You know I love you so
 
-[Instrumental]
-[G] [D][C][G][Gsus]
+[Interlude]
+[G][D][C][G][Gsus]
 
 [Verse]
 [G]I swam across
@@ -48,7 +48,7 @@ And it was all yellow[G][Gsus]
 [Cma7]And you [Em7]know, for you [D]I bleed myself [Cma7]dry
 For you I bleed myself dry
 
-[Instrumental]
+[Interlude]
 [G][D][C][G][Gsus]
 
 [Bridge]
@@ -62,4 +62,5 @@ Look how they shine
 [Outro]
 [G]Look at the stars
 Look how they shine for [Dm7]you
+
 And all the things that you [Cma7]do

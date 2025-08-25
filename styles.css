@@ -5,14 +5,34 @@
   --ink: #1a1a1a;
   --muted: #6b7280;
   --brand: #2563eb;
+  --: #1d4ed8;
+  --: #047857;
+  --: rgba(0, 0, 0, 0.6);
   --line: #e5e7eb;
   --accent: #059669;
   --hover: #f3f4f6;
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  /*陰影*/
   --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); 
+  /**/
+  --floating-slider-bg:#01123527;
+  --floating-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --floating-bg:#ffffff3d;
+  /*字體*/
   --mono:  Consolas, "Liberation Mono", monospace;
   --sans: Consolas, "Noto Sans TC", "Inter", "PingFang TC", system-ui, -apple-system, sans-serif;
   --lyrics: Consolas, "Zen Maru", "Noto Sans TC", "Inter", "PingFang TC", system-ui, -apple-system, sans-serif;
+  /*段落顏色*/
+  --section-intro: #10b981;
+  --section-verse: #60a5fa;
+  --section-pre-chorus: #06b6d4;
+  --section-chorus: #f59e0b;
+  --section-interlude: #84cc16;
+  --section-solo: #f97316;
+  --section-bridge: #8b5cf6;
+  --section-outro: #ef4444;
 }
 /* =================== 字體載入 ==================== */
 /* 本地字體載入 */
@@ -92,13 +112,13 @@ body {
 }
 
 .btn.danger {
-  background: #dc2626;
+  background:  var(--danger);
   color: white;
-  border-color: #dc2626;
+  border-color: var(--danger);
 }
 
 .btn.danger:hover {
-  background: #b91c1c;
+  background: var(--danger-hover);
 }
 
 /* 圖標按鈕 */
@@ -124,12 +144,12 @@ body {
 }
 
 .btn-icon.danger {
-  color: #dc2626;
+  color: var(--danger);
 }
 
 .btn-icon.danger:hover {
   background: #fef2f2;
-  color: #b91c1c;
+  color: var(--danger-hover);
 }
 
 .btn-icon svg {
@@ -154,7 +174,6 @@ body {
 .input:focus {
   outline: none;
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* 滑桿控件 */
@@ -163,7 +182,7 @@ body {
   appearance: none;
   height: 6px;
   border-radius: 3px;
-  background: var(--line);
+  background: var(--floating-slider-bg);
   outline: none;
 }
 
@@ -175,8 +194,6 @@ body {
   border-radius: 50%;
   background: var(--brand);
   cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .speed-slider::-moz-range-thumb {
@@ -185,11 +202,9 @@ body {
   border-radius: 50%;
   background: var(--brand);
   cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* ==================== 滑桿 ==================== */
+/* 滑桿控件 */
 .right-sidebar {
   padding-right: 10px;
 }
@@ -210,8 +225,8 @@ body {
 ::-webkit-scrollbar-thumb {
   border-radius: 4px;
   background-color: var(--line);
+  cursor: pointer;
 }
-
 
 /* ==================== 工具類 ==================== */
 .sp {
@@ -275,19 +290,19 @@ body {
 
 /* ==================== 樂譜顯示 ==================== */
 .sec {
-  margin: 0 0 12px 0;
-  padding: 8px 12px;
-  border-left: 4px solid var(--brand);
+  margin: 24px 0 12px 0;
+  padding: 3px 12px;
   border-radius: 6px;
   background: var(--hover);
-  font-weight: 600;
+  font-weight: 400;
   font-size: 18px;
+  color: var(--muted);
 }
-
 .line {
   white-space: pre;
   margin: 0 0 14px 0;
   position: relative;
+  padding: 0 10px;
 }
 
 .line .chords {
@@ -302,7 +317,7 @@ body {
   opacity: 0.95;
 }
 
-/* ==================== 樂譜字體統一設置 ==================== */
+/* ==================== 字體統一設置 ==================== */
 /* 和弦指法圖 */
 .chord-diagram {
   font-family: var(--sans);
@@ -382,7 +397,7 @@ body {
   padding: 0 0 0 10px;
 }
 .score {
-  padding: 24px;
+  padding: 0px 24px 24px 24px;
   background: var(--card);
   border-radius: 0 0 12px 12px;
 }
@@ -397,11 +412,11 @@ body {
   padding: 8px 12px;
   border-radius: 8px;
   border: 1px solid var(--line);
-  background: var(--card);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: var(---floating-bg);
+  box-shadow: var(--floating-shadow);
   z-index: 998;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   transform: translateZ(0);
 }
 
@@ -452,7 +467,6 @@ body {
 .editor-textarea:focus {
   outline: none;
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .preview {
@@ -565,7 +579,6 @@ body {
   font-weight: 500;
   text-align: center;
   transition: all 0.15s ease;
-  color: var(--ink);
   position: relative;
 }
 
@@ -580,7 +593,7 @@ body {
   right: -4px;
   width: 16px;
   height: 16px;
-  background: #dc2626;
+  background: var(--danger);
   color: white;
   border: none;
   border-radius: 50%;
@@ -627,67 +640,67 @@ body {
 
 /* 段落按鈕顏色 */
 .section-btn.intro {
-  border-color: #10b981;
-  color: #10b981;
+  border-color: var(--section-intro);
+  color: var(--section-intro);
 }
 .section-btn.intro:hover {
-  background: #10b981;
+  background: var(--section-intro);
   color: white;
 }
 .section-btn.verse {
-  border-color: #60a5fa;
-  color: #60a5fa;
+  border-color: var(--section-verse);
+  color: var(--section-verse);
 }
 .section-btn.verse:hover {
-  background: #60a5fa;
+  background: var(--section-verse);
   color: white;
 }
 .section-btn.pre-chorus {
-  border-color: #06b6d4;
-  color: #06b6d4;
+  border-color: var(--section-pre-chorus);
+  color: var(--section-pre-chorus);
 }
 .section-btn.pre-chorus:hover {
-  background: #06b6d4;
+  background: var(--section-pre-chorus);
   color: white;
 }
 .section-btn.chorus {
-  border-color: #f59e0b;
-  color: #f59e0b;
+  border-color: var(--section-chorus);
+  color: var(--section-chorus);
 }
 .section-btn.chorus:hover {
-  background: #f59e0b;
+  background: var(--section-chorus);
   color: white;
 }
 .section-btn.interlude {
-  border-color: #84cc16;
-  color: #84cc16;
+  border-color: var(--section-interlude);
+  color: var(--section-interlude);
 }
 .section-btn.interlude:hover {
-  background: #84cc16;
+  background: var(--section-interlude);
   color: white;
 }
 .section-btn.solo {
-  border-color: #f97316;
-  color: #f97316;
+  border-color: var(--section-solo);
+  color: var(--section-solo);
 }
 .section-btn.solo:hover {
-  background: #f97316;
+  background: var(--section-solo);
   color: white;
 }
 .section-btn.bridge {
-  border-color: #8b5cf6;
-  color: #8b5cf6;
+  border-color: var(--section-bridge);
+  color: var(--section-bridge);
 }
 .section-btn.bridge:hover {
-  background: #8b5cf6;
+  background: var(--section-bridge);
   color: white;
 }
 .section-btn.outro {
-  border-color: #ef4444;
-  color: #ef4444;
+  border-color: var(--section-outro);
+  color: var(--section-outro);
 }
 .section-btn.outro:hover {
-  background: #ef4444;
+  background: var(--section-outro);
   color: white;
 }
 

@@ -241,7 +241,7 @@ function buildChordLine(lyrics, chords, options = {}) {
         .join("")}
     </div>`;
   }
-
+  
   // 正常情況：有和弦也有歌詞
   let blocks = [];
 
@@ -709,13 +709,30 @@ function buildChordLine(lyrics, chords, options = {}) {
       window.onload = function() {
         init();
         
-        // 檢查 URL 參數中是否有內容
+        // 優先從 localStorage 讀取內容，否則兼容舊的 ?content，再 fallback 空內容
         const urlParams = new URLSearchParams(window.location.search);
+        const contentFromStorage = localStorage.getItem('currentSheetContent');
         const contentParam = urlParams.get('content');
-        if (contentParam) {
-          const decodedContent = decodeURIComponent(contentParam);
-          importScore(decodedContent);
+        const titleParam = urlParams.get('title');
+
+        let contentToLoad = null;
+        if (contentFromStorage && contentFromStorage.trim()) {
+          contentToLoad = contentFromStorage;
+        } else if (contentParam) {
+          contentToLoad = decodeURIComponent(contentParam);
         }
+
+        if (contentToLoad) {
+          importScore(contentToLoad);
+        }
+
+        // 清除一次性內容，避免舊內容殘留
+        localStorage.removeItem('currentSheetContent');
+
+        // 清理網址，只保留簡短的標題參數（若存在）
+        const finalTitle = titleParam || (parseSheetMeta(contentToLoad || "").title || "");
+        const newUrl = finalTitle ? `reader.html?${encodeURIComponent(finalTitle)}` : 'reader.html';
+        window.history.replaceState({}, '', newUrl);
       };
     </script>
   </body>

@@ -821,18 +821,16 @@
         };
 
         document.getElementById("playBtn").onclick = () => {
-          // 保存當前編輯內容到 localStorage
-          const currentContent =
-            document.getElementById("editorTextarea").value;
+          // 保存當前編輯內容到 localStorage，並以標題簡化網址
+          const currentContent = document.getElementById("editorTextarea").value;
           localStorage.setItem("editorContent", currentContent);
+          localStorage.setItem("currentSheetContent", currentContent);
 
-          // 如果有內容，將其編碼到 URL 中
-          let url = "reader.html";
-          if (currentContent.trim()) {
-            const encodedContent = encodeURIComponent(currentContent);
-            url += `?content=${encodedContent}`;
-          }
-          window.location.href = url;
+          // 從內容解析標題，作為網址顯示
+          const meta = parseSheetMeta(currentContent || "");
+          const title = (meta && meta.title) ? meta.title : "未命名";
+
+          window.location.href = `reader.html?${encodeURIComponent(title)}`;
         };
 
         document.getElementById("newBtn").onclick = newDocument;

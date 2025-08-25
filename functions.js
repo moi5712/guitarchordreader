@@ -147,7 +147,7 @@ const CHORD_MAP = {
 
 const CHORD_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
-// ==================== 核心解析函數 ====================
+// ==================== 解析樂譜 ====================
 
 // 格式化段落標籤
 function formatSectionLabel(type, count) {

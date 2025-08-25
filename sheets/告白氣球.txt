@@ -1,0 +1,68 @@
+#title: 告白氣球
+#artist: 周杰倫
+#key: G
+#bpm: 90
+#capo: 4
+
+[Intro]
+[C]   [D]    [Gadd9]
+[C]   [D]    [Gadd9]   [B/D#]
+[Em]  [Em/D] [C]   [G/B]
+[Am7]      [C/D]   [D]
+[Verse]
+[Em]塞納河畔 左岸的咖啡
+[Bm7]我手一杯 品嚐你的美
+[C]留下唇印的嘴[Gadd9]
+
+[Em]花店玫瑰 名字寫錯誰
+[Bm7]告白氣球 風吹到對街
+[Am]微笑[D]在天上[Gadd9]飛
+
+[Pre-Chorus]
+[C]你說你有點難追 想讓[D/C]我知難而退
+[Bm7]禮物不需挑最貴 只要[Em]香榭的落葉
+[A]營造浪漫的約會 不害[A/C#]怕搞砸一切
+[C/D]擁有你就擁有[D]全世界
+
+[Chorus]
+[Gadd9]親愛的   愛上[B7]你 [Em]從那天[Em/D]起
+[C]甜蜜的[D]很輕易[Gadd9]
+[Gadd9]親愛的   別[B7]任性 [Em]你的[Dm7]眼睛[G7]
+[C]在說[D]我願意[Gadd9]
+
+[Bridge]
+[G]   [D/F#]   [Em] [Em/D]   [C] [D]   [G]
+[G]   [D/F#]   [Em] [Em/D]   [C] [D]   [G] [B/D#]
+
+[Verse]
+[Em]塞納河畔 左岸的咖啡
+[Bm7]我手一杯 品嚐你的美
+[C]留下唇印的嘴[Gadd9]
+
+[Em]花店玫瑰 名字寫錯誰
+[Bm7]告白氣球 風吹到對街
+[Am]微笑[D]在天上[Gadd9]飛
+
+[Pre-Chorus]
+[C]你說你有點難追 想讓[D/C]我知難而退
+[Bm7]禮物不需挑最貴 只要[Em]香榭的落葉
+[A]營造浪漫的約會 不害[A/C#]怕搞砸一切
+[C/D]擁有你就擁有[D]全世界
+
+[Chorus]
+[Gadd9]親愛的   愛上[B7]你 [Em]從那天[Em/D]起
+[C]甜蜜的[D]很輕易[Gadd9]
+[Gadd9]親愛的   別[B7]任性 [Em]你的[Dm7]眼睛[G7]
+[C]在說[D]我願意[Gadd9]
+
+[Chorus]
+[Gadd9]親愛的   愛上[B7]你 [Em]戀愛[Em/D]日記
+[C]飄香水[D]的回憶[Gadd9]
+[Gadd9]一整瓶   的[B7]夢境 [Em]全都[Dm7]有你[G7]
+[C]攪拌[D]在一起[Gadd9]
+
+[Outro]
+[Gadd9]親愛的   別[B7]任性 [Em]你的[Dm7]眼睛[G7]
+[C]在說[D]我願意[Gadd9]
+ 
+

@@ -1,0 +1,65 @@
+#title: Yellow
+#artist: Coldplay
+#key: G
+#capo: 4
+
+[Intro]
+[G][G]
+[G][D][C][G]
+
+[Verse]
+[G]Look at the stars
+Look how they shine for [D]you
+And everything you do[Cma7]
+
+Yeah, they were all yellow
+[G]I came along
+I wrote a song for [D]you
+And all the things you do[Cma7]
+
+And it was called "Yellow"
+[G]So then I took my[D]turn
+Oh, what a thing to have done[Cma7]
+And it was all yellow[G][Gsus]
+
+[Chorus]
+[Cma7]Your [Em7]skin, oh yeah, [D]your skin and bones
+[Cma7]Turn [Em7]into some[D]thing beautiful
+[Cma7]You [Em7]know, you know [D]I love you so
+[Cma7]You know I love you so
+
+[Instrumental]
+[G] [D][C][G][Gsus]
+
+[Verse]
+[G]I swam across
+I jumped across for [D]you
+Oh, what a thing to do[Cma7]
+
+'Cause you were all yellow
+[G]I drew a line
+I drew a line for [D]you
+Oh, what a thing to do[Cma7]
+And it was all yellow[G][Gsus]
+
+[Chorus]
+[Cma7]Your [Em7]skin, oh yeah, [D]your skin and bones
+[Cma7]Turn [Em7]into some [D]thing beautiful
+[Cma7]And you [Em7]know, for you [D]I bleed myself [Cma7]dry
+For you I bleed myself dry
+
+[Instrumental]
+[G][D][C][G][Gsus]
+
+[Bridge]
+It's [G]true, look how they shine for [D]you
+Look how they shine for [Cma7]you
+Look how they shine for[G]
+Look how they shine for [D]you
+Look how they shine for [Cma7]you
+Look how they shine
+
+[Outro]
+[G]Look at the stars
+Look how they shine for [Dm7]you
+And all the things that you [Cma7]do

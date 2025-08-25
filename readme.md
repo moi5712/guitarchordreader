@@ -4,8 +4,8 @@
 
 ## 線上試用
 
-- [首頁/樂譜庫（請下載sheet資料夾至本地做測試） ↗](https://moi5712.github.io/guitarchordreader/library.html)
-- [閱讀器（請下載sheet資料夾至本地做測試） ↗](https://moi5712.github.io/guitarchordreader/reader.html)
+- [首頁/樂譜庫 ↗](https://moi5712.github.io/guitarchordreader/library.html)
+- [閱讀器 ↗](https://moi5712.github.io/guitarchordreader/reader.html)
 - [編輯器 ↗](https://moi5712.github.io/guitarchordreader/editor.html)
 
 ## 內容說明
@@ -14,9 +14,8 @@
 - editor.html：編輯和弦譜。
 - reader.html：演奏和弦譜。
 - chord-database.js：和弦指法數據庫。
-- readme.md：本文件。
-- sheets/：存放樂譜檔案，會顯示在首頁（內含兩首範例譜面）。
-- fonts/：存放網頁使用的本地字體。
+- sheets/：存放樂譜檔案，會顯示在首頁（內含3首範例譜面）。
+- fonts/：存放歌詞使用的字體。
 
 ## 功能說明
 

@@ -235,26 +235,26 @@ function buildChordLine(lyrics, chords, options = {}) {
 
   // 只有和弦沒有歌詞
   if (!lyrics.trim()) {
-    return wrapContainer(
-      sortedChords
+    return `<div style="display: flex; flex-wrap: wrap; align-items: flex-end; margin-bottom: 5px; gap: 8px;">
+      ${sortedChords
         .map((chord) => createBlock(getChordContent(chord.chord), "&nbsp;"))
-        .join("")
-    );
+        .join("")}
+    </div>`;
   }
 
   // 正常情況：有和弦也有歌詞
   let blocks = [];
 
   if (sortedChords[0]?.pos > 0) {
-    const initialLyrics = lyrics.slice(0, sortedChords[0].pos).trim();
+    const initialLyrics = lyrics.slice(0, sortedChords[0].pos).replace(/^\s+/, '');
     if (initialLyrics) {
       blocks.push(createBlock("", initialLyrics, chordBlockHeight));
     }
   }
-
+   
   sortedChords.forEach((chord, index) => {
     const nextPos = sortedChords[index + 1]?.pos || lyrics.length;
-    let lyricPart = lyrics.slice(chord.pos, nextPos).trim();
+    let lyricPart = lyrics.slice(chord.pos, nextPos).replace(/^\s+/, '');
 
     const currentPos = chord.pos;
     const isLastChordAtThisPosition =

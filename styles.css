@@ -391,6 +391,7 @@ body {
   font-size: inherit;
   font-weight: normal;
   font-family: var(--lyrics) !important;
+  line-height:1.4;
   padding: 0 0 0 0;
 }
 .lyric-content.with-fingering {

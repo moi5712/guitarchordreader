@@ -215,14 +215,14 @@ function buildChordLine(lyrics, chords, options = {}) {
 
   const createBlock = (chordContent, lyricContent, blockChordHeight = chordBlockHeight) => {
     const lyricClass = showFingering ? 'lyric-content with-fingering' : 'lyric-content';
-    return `<div style="display: flex; flex-direction: column; align-items: flex-start; margin-right: 4px;">
+    return `<div style="display: flex; flex-direction: column; align-items: flex-start;">
       <div style="height: ${blockChordHeight}; margin-bottom: 2px; display: flex; align-items: flex-end;">${chordContent}</div>
       <div class="${lyricClass}">${lyricContent || '&nbsp;'}</div>
     </div>`;
   };
 
   const wrapContainer = (content) =>
-    `<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; margin-bottom: 5px;">${content}</div>`;
+    `<div style="display: flex; flex-wrap: wrap; align-items: flex-end; margin-bottom: 5px;">${content}</div>`;
 
   // 無和弦情況
   if (chords.length === 0) {

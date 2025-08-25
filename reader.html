@@ -446,7 +446,16 @@ function buildChordLine(lyrics, chords, options = {}) {
         document.getElementById("subtitle").textContent = subtitle;
 
         const score = document.getElementById("score");
-        score.innerHTML = "";
+        
+        // 檢查是否有內容
+        const hasContent = song.sections.length > 0 && song.sections.some(sec => sec.lines.length > 0);
+        
+        if (hasContent) {
+          score.classList.add("has-content");
+        } else {
+          score.classList.remove("has-content");
+        }
+        
         const fontSize = Math.max(
           10,
           Math.min(30, +document.getElementById("fontPx").value || 15)
@@ -471,8 +480,19 @@ function buildChordLine(lyrics, chords, options = {}) {
           tip.style.borderRadius = "12px";
           tip.style.transition = "all 0.2s ease";
           tip.innerHTML = `
-            <div style="font-size: 16px; margin-bottom: 4px;">點擊載入樂譜</div>
+            <div style="font-size: 16px; margin-bottom: 4px;">點擊或拖放以載入</div>
+            <div style="font-size: 14px;">僅限 .txt 和 .gtab 格式</div>
           `;
+
+          // 防止預設拖曳行為
+          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            tip.addEventListener(eventName, preventDefaults, false);
+          });
+          
+          function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
 
           tip.addEventListener("mouseenter", function () {
             this.style.backgroundColor = "#f8f9fa";
@@ -488,8 +508,43 @@ function buildChordLine(lyrics, chords, options = {}) {
             document.getElementById("importFile").click();
           });
 
+          // 拖曳視覺回饋
+          tip.addEventListener("dragenter", function() {
+            this.style.backgroundColor = "#e3f2fd";
+            this.style.border = "2px dashed #2196f3";
+          });
+
+          tip.addEventListener("dragleave", function() {
+            this.style.backgroundColor = "transparent";
+            this.style.border = "none";
+          });
+
+          tip.addEventListener("drop", function(e) {
+            this.style.backgroundColor = "transparent";
+            this.style.border = "none";
+            
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+              const file = files[0];
+              if (file.name.endsWith('.txt') || file.name.endsWith('.gtab')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                  importScore(e.target.result);
+                };
+                reader.readAsText(file, 'utf-8');
+              } else {
+                alert('請拖曳 .txt 或 .gtab 格式的檔案');
+              }
+            }
+          });
+
           score.appendChild(tip);
         } else {
+          // 清空 score 區域，準備渲染樂譜內容
+          score.innerHTML = "";
+          
           song.sections.forEach((sec) => {
             const h = document.createElement("div");
             h.className = "sec";
@@ -705,6 +760,8 @@ function buildChordLine(lyrics, chords, options = {}) {
         song.sections = [];
         render();
       }
+
+
 
       window.onload = function() {
         init();

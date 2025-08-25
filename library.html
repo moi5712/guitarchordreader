@@ -5,9 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>首頁</title>
     <link rel="stylesheet" href="styles.css" />
-
 </head>
 <body>
+    <!-- 深色模式切換按鈕 -->
+    <button class="theme-toggle" id="themeToggle" title="切換深色模式">
+        <svg class="sun-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="moon-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
     <div class="library-container">
         <header class="library-header">
             <h1 class="library-title">首頁</h1>
@@ -40,7 +57,7 @@
         <div id="emptyState" class="empty-state" style="display: none;">
             <div class="empty-icon">空</div>
             <div class="empty-title">沒有樂譜</div>
-            <div class="empty-message">請將樂譜檔案放入 sheets 資料夾</div>
+            <div class="empty-message">請將樂譜放入 sheets 資料夾</div>
         </div>
 
         <div id="loadingState" class="empty-state" style="display: none;">
@@ -59,6 +76,7 @@
     </div>
 
     <script src="functions.js"></script>
+    <script src="theme.js"></script>
     <script>
         // 樂譜庫狀態
         let currentSheets = [];
@@ -132,6 +150,50 @@
             selectFolderBtn.addEventListener('click', handleSelectFolder);
         }
 
+        // GitHub API 掃描樂譜檔案
+        async function scanGitHubSheets() {
+            try {
+                // 檢查是否為 GitHub Pages
+                const isGitHubPages = window.location.hostname.includes('github.io');
+                
+                if (isGitHubPages) {
+                    // 從 URL 推斷 GitHub repo 信息
+                    const hostname = window.location.hostname;
+                    const pathParts = window.location.pathname.split('/').filter(p => p);
+                    
+                    let username, repoName;
+                    
+                    if (hostname.endsWith('.github.io')) {
+                        username = hostname.split('.')[0];
+                        repoName = pathParts[0] || (username + '.github.io');
+                    }
+                    
+                    if (username && repoName) {
+                        const apiUrl = `https://api.github.com/repos/${username}/${repoName}/contents/sheets`;
+                        console.log(`嘗試 GitHub API: ${apiUrl}`);
+                        
+                        const response = await fetch(apiUrl);
+                        if (response.ok) {
+                            const files = await response.json();
+                            const sheetFiles = files
+                                .filter(file => file.type === 'file' && (file.name.endsWith('.txt') || file.name.endsWith('.gtab')))
+                                .map(file => file.name);
+                            
+                            console.log(`GitHub API 找到 ${sheetFiles.length} 個檔案`);
+                            return sheetFiles;
+                        } else {
+                            console.log(`GitHub API 回應錯誤: ${response.status}`);
+                        }
+                    }
+                }
+                
+                return [];
+            } catch (error) {
+                console.log('GitHub API 掃描失敗:', error);
+                return [];
+            }
+        }
+
         // 自動掃描 sheets 資料夾
         async function autoScanSheetsFolder() {
             try {
@@ -163,35 +225,36 @@
                     console.log('PHP 腳本掃描失敗，嘗試其他方法:', phpError);
                 }
 
-                const sheets = [];
-                for (const filename of commonFiles) {
-                    try {
-                        const response = await fetch(`./sheets/${encodeURIComponent(filename)}`);
-                        if (response.ok) {
-                            const content = await response.text();
-                            const meta = parseSheetMeta(content);
+                // 方法3: 嘗試使用 GitHub API 掃描
+                const githubFiles = await scanGitHubSheets();
+                if (githubFiles.length > 0) {
+                    const sheets = [];
+                    for (const filename of githubFiles) {
+                        try {
+                            const response = await fetch(`./sheets/${encodeURIComponent(filename)}`);
+                            if (response.ok) {
+                                const content = await response.text();
+                                const meta = parseSheetMeta(content);
 
-                            sheets.push({
-                                filename: filename,
-                                title: meta.title || filename.replace(/\.(txt|gtab)$/, ''),
-                                artist: meta.artist || '',
-                                content: content,
-                                lastModified: Date.now(),
-                                addedDate: new Date().toISOString()
-                            });
+                                sheets.push({
+                                    filename: filename,
+                                    title: meta.title || filename.replace(/\.(txt|gtab)$/, ''),
+                                    artist: meta.artist || '',
+                                    content: content,
+                                    lastModified: Date.now(),
+                                    addedDate: new Date().toISOString()
+                                });
+                            }
+                        } catch (error) {
+                            console.log(`無法讀取檔案 ${filename}:`, error.message);
                         }
-                    } catch (error) {
-                        // 檔案不存在或讀取失敗，跳過
-                        console.log(`無法讀取檔案 ${filename}:`, error.message);
+                    }
+
+                    if (sheets.length > 0) {
+                        console.log(`讀取完成：${sheets.length} 首樂譜`);
+                        return sheets;
                     }
                 }
-
-                if (sheets.length > 0) {
-                    console.log(`讀取完成：${sheets.length} 首樂譜`);
-                    return sheets;
-                }
-
-
 
             } catch (error) {
                 console.log('讀取失敗:', error);
@@ -417,8 +480,6 @@
                 hideLoadingState();
             }
         }
-
-
 
         // 顯示空狀態
         function showEmptyState() {

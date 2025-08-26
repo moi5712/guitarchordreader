@@ -972,6 +972,61 @@ body {
 }
 /* ==================== 響應式設計 ==================== */
 @media (max-width: 1024px) {
+  /* 全站文字縮小為 0.8 倍（不受 px 限制），仍保留原字級控制效果 */
+  html {
+    -webkit-text-size-adjust: 80%;
+    text-size-adjust: 80%;
+  }
+
+  /* 小於 768 時等比例縮小和弦 SVG，避免被裁切 */
+  .score svg {
+    transform: scale(0.8);
+    transform-origin: bottom left;
+    display: block; /* 避免行內元素導致的 baseline 位移 */
+  }
+  .topbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .wrap {
+    padding: 80px 8px 8px 8px;
+  }
+
+  .btn-icon {
+    font-size: 14px;
+    min-width: 28px;
+    height: 28px;
+  }
+
+  .editor-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .left-sidebar {
+    position: static;
+  }
+
+  .section-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .library-actions input {
+    width: 100% !important;
+  }
+
+  .sheets-grid {
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 16px !important;
+  }
+
+  .score.has-content{
+      padding: 0px 12px 12px 12px;
+  }
+
+  .library-container {
+    padding: 16px;
+  }
   .editor-layout {
     grid-template-columns: 260px 1fr;
   }
@@ -1026,60 +1081,5 @@ body {
   }
   .sheets-grid {
     gap: 0px;
-  }
-}
-
-@media (max-width: 1024px) {
-  .topbar {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .wrap {
-    padding: 80px 8px 8px 8px;
-  }
-
-  .btn-icon {
-    font-size: 14px;
-    min-width: 28px;
-    height: 28px;
-  }
-
-  .editor-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .left-sidebar {
-    position: static;
-  }
-
-  .section-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  .library-actions input {
-    width: 100% !important;
-  }
-
-  .sheets-grid {
-    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-    gap: 16px !important;
-  }
-
-  .library-container {
-    padding: 16px;
-  }
-
-  /* 全站文字縮小為 0.8 倍（不受 px 限制），仍保留原字級控制效果 */
-  html {
-    -webkit-text-size-adjust: 80%;
-    text-size-adjust: 80%;
-  }
-
-  /* 小於 768 時等比例縮小和弦 SVG，避免被裁切 */
-  .score svg {
-    transform: scale(0.8);
-    transform-origin: bottom left;
-    display: block; /* 避免行內元素導致的 baseline 位移 */
   }
 }

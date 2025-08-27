@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>首頁</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <div class="library-container">
+        <header class="library-header">
+            <h1 class="library-title">首頁</h1>
+            <div class="library-actions">
+                <input
+                    id="searchInput"
+                    class="input"
+                    type="text"
+                    placeholder="搜尋樂譜..."
+                    style="width: 250px;"
+                />
+                <button id="refreshBtn" class="btn secondary">
+                    同步
+                </button>
+                <button id="selectFolderBtn" class="btn primary">
+                    選擇資料夾
+                </button>
+            </div>
+        </header>
+
+        <div id="statusBar" class="status-bar">
+            <span id="sheetCount">0 首樂譜</span>
+            <span id="statusText">準備載入樂譜...</span>
+        </div>
+
+        <div id="sheetsContainer" class="sheets-grid">
+            <!-- 樂譜卡片將在這裡動態生成 -->
+        </div>
+
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-icon">空</div>
+            <div class="empty-title">沒有樂譜</div>
+            <div class="empty-message">請將樂譜檔案放入 sheets 資料夾，或點擊「選擇資料夾」手動選擇</div>
+        </div>
+
+        <div id="loadingState" class="empty-state" style="display: none;">
+            <div class="empty-title">載入中</div>
+        </div>
+
+        <div id="localFileState" class="empty-state" style="display: none;">
+            <div class="empty-icon">空</div>
+            <div class="empty-title">本地檔案模式</div>
+            <div class="empty-message">
+                由於瀏覽器安全限制，無法自動同步本地檔案。<br>
+                請點擊「選擇資料夾」按鈕選擇包含樂譜的資料夾，<br>
+                或啟動服務器：<code>node server.js</code>
+            </div>
+        </div>
+    </div>
+
+    <script src="functions.js"></script>
+    <script src="theme.js"></script>
+    <script>
+        // 樂譜庫狀態
+        let currentSheets = [];
+        let filteredSheets = [];
+        let isLoading = false;
+        let autoRefreshInterval = null;
+
+        // DOM 元素
+        const sheetsContainer = document.getElementById('sheetsContainer');
+        const emptyState = document.getElementById('emptyState');
+        const loadingState = document.getElementById('loadingState');
+        const localFileState = document.getElementById('localFileState');
+        const statusBar = document.getElementById('statusBar');
+        const statusText = document.getElementById('statusText');
+        const sheetCount = document.getElementById('sheetCount');
+        const searchInput = document.getElementById('searchInput');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const selectFolderBtn = document.getElementById('selectFolderBtn');
+
+        // 初始化
+        async function init() {
+            setupEventListeners();
+            await loadSheetLibrary();
+            startAutoRefresh();
+        }
+
+        // 開始自動重新整理 (每30秒檢查一次)
+        function startAutoRefresh() {
+            // 清除現有的定時器
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+
+            // 設置新的定時器
+            autoRefreshInterval = setInterval(async () => {
+                if (!isLoading) {
+                    console.log('正在讀取...');
+                    const oldCount = currentSheets.length;
+
+                    try {
+                        const sheets = await autoScanSheetsFolder();
+                        const newCount = sheets.length;
+
+                        // 只有在數量變化時才更新界面
+                        if (newCount !== oldCount) {
+                            currentSheets = sheets;
+                            filteredSheets = [...currentSheets];
+                            renderSheets();
+                            updateStatus();
+                            console.log(`樂譜數量變化：${oldCount} → ${newCount}`);
+                        }
+                    } catch (error) {
+                        console.error('讀取失敗:', error);
+                    }
+                }
+            }, 30000); // 30秒
+        }
+
+        // 停止自動重新整理
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
+
+        // 設置事件監聽器
+        function setupEventListeners() {
+            searchInput.addEventListener('input', handleSearch);
+            refreshBtn.addEventListener('click', handleRefresh);
+            selectFolderBtn.addEventListener('click', handleSelectFolder);
+        }
+
+        // GitHub API 掃描樂譜檔案
+        async function scanGitHubSheets() {
+            try {
+                // 檢查是否為 GitHub Pages
+                const isGitHubPages = window.location.hostname.includes('github.io');
+                
+                if (isGitHubPages) {
+                    // 從 URL 推斷 GitHub repo 信息
+                    const hostname = window.location.hostname;
+                    const pathParts = window.location.pathname.split('/').filter(p => p);
+                    
+                    let username, repoName;
+                    
+                    if (hostname.endsWith('.github.io')) {
+                        username = hostname.split('.')[0];
+                        repoName = pathParts[0] || (username + '.github.io');
+                    }
+                    
+                    if (username && repoName) {
+                        const apiUrl = `https://api.github.com/repos/${username}/${repoName}/contents/sheets`;
+                        console.log(`嘗試 GitHub API: ${apiUrl}`);
+                        
+                        const response = await fetch(apiUrl);
+                        if (response.ok) {
+                            const files = await response.json();
+                            const sheetFiles = files
+                                .filter(file => file.type === 'file' && (file.name.endsWith('.txt') || file.name.endsWith('.gtab')))
+                                .map(file => file.name);
+                            
+                            console.log(`GitHub API 找到 ${sheetFiles.length} 個檔案`);
+                            return sheetFiles;
+                        } else {
+                            console.log(`GitHub API 回應錯誤: ${response.status}`);
+                        }
+                    }
+                }
+                
+                return [];
+            } catch (error) {
+                console.log('GitHub API 掃描失敗:', error);
+                return [];
+            }
+        }
+
+        // 自動掃描 sheets 資料夾
+        async function autoScanSheetsFolder() {
+            try {
+                // 方法1: 嘗試使用 Node.js API
+                try {
+                    const response = await fetch('./api/sheets');
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.sheets) {
+                            console.log(`Node.js API 掃描完成：${data.count} 首樂譜`);
+                            return data.sheets;
+                        }
+                    }
+                } catch (apiError) {
+                    console.log('Node.js API 掃描失敗，嘗試其他方法:', apiError);
+                }
+
+                // 方法2: 嘗試使用 PHP 腳本掃描
+                try {
+                    const response = await fetch('./sheets/index.php');
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.sheets) {
+                            console.log(`PHP 腳本掃描完成：${data.count} 首樂譜`);
+                            return data.sheets;
+                        }
+                    }
+                } catch (phpError) {
+                    console.log('PHP 腳本掃描失敗，嘗試其他方法:', phpError);
+                }
+
+                // 方法3: 嘗試使用 GitHub API 掃描
+                const githubFiles = await scanGitHubSheets();
+                if (githubFiles.length > 0) {
+                    const sheets = [];
+                    for (const filename of githubFiles) {
+                        try {
+                            const response = await fetch(`./sheets/${encodeURIComponent(filename)}`);
+                            if (response.ok) {
+                                const content = await response.text();
+                                const meta = parseSheetMeta(content);
+
+                                sheets.push({
+                                    filename: filename,
+                                    title: meta.title || filename.replace(/\.(txt|gtab)$/, ''),
+                                    artist: meta.artist || '',
+                                    content: content,
+                                    lastModified: Date.now(),
+                                    addedDate: new Date().toISOString()
+                                });
+                            }
+                        } catch (error) {
+                            console.log(`無法讀取檔案 ${filename}:`, error.message);
+                        }
+                    }
+
+                    if (sheets.length > 0) {
+                        console.log(`GitHub 掃描完成：${sheets.length} 首樂譜`);
+                        return sheets;
+                    }
+                }
+
+            } catch (error) {
+                console.log('讀取失敗:', error);
+            }
+
+            return [];
+        }
+
+        // 載入樂譜庫 - 每次都重新掃描
+        async function loadSheetLibrary() {
+            showLoadingState();
+
+            try {
+                // 每次都重新掃描 sheets 資料夾
+                let sheets = await autoScanSheetsFolder();
+
+                currentSheets = sheets;
+                filteredSheets = [...currentSheets];
+                renderSheets();
+                updateStatus();
+
+                if (sheets.length > 0) {
+                    statusText.textContent = `讀取完成`;
+                } else {
+                    statusText.textContent = '未找到樂譜檔案';
+                    showEmptyState();
+                }
+            } catch (error) {
+                console.error('掃描樂譜庫失敗:', error);
+                statusText.textContent = '讀取失敗';
+                showEmptyState();
+            } finally {
+                hideLoadingState();
+            }
+        }
+
+        // 處理搜尋
+        function handleSearch(e) {
+            const query = e.target.value.toLowerCase().trim();
+            
+            if (query) {
+                filteredSheets = currentSheets.filter(sheet => 
+                    sheet.title.toLowerCase().includes(query) ||
+                    sheet.artist.toLowerCase().includes(query) ||
+                    sheet.filename.toLowerCase().includes(query)
+                );
+            } else {
+                filteredSheets = [...currentSheets];
+            }
+            
+            renderSheets();
+            updateStatus();
+        }
+
+        // 處理同步
+        async function handleRefresh() {
+            showLoadingState();
+
+            try {
+                const sheets = await autoScanSheetsFolder();
+                currentSheets = sheets;
+                filteredSheets = [...currentSheets];
+                renderSheets();
+                updateStatus();
+
+                if (sheets.length > 0) {
+                    statusText.textContent = `同步完成`;
+                } else {
+                    statusText.textContent = '未找到檔案';
+                    showEmptyState();
+                }
+            } catch (error) {
+                console.error('同步失敗:', error);
+                statusText.textContent = '同步失敗';
+            } finally {
+                hideLoadingState();
+            }
+        }
+
+        // 顯示載入狀態
+        function showLoadingState() {
+            sheetsContainer.style.display = 'none';
+            emptyState.style.display = 'none';
+            loadingState.style.display = 'block';
+        }
+
+        // 隱藏載入狀態
+        function hideLoadingState() {
+            loadingState.style.display = 'none';
+        }
+
+        // 渲染樂譜卡片
+        function renderSheets() {
+            sheetsContainer.innerHTML = '';
+            
+            if (filteredSheets.length === 0) {
+                showEmptyState();
+                return;
+            }
+            
+            hideEmptyState();
+            
+            filteredSheets.forEach(sheet => {
+                const card = createSheetCard(sheet);
+                sheetsContainer.appendChild(card);
+            });
+        }
+
+        // 創建樂譜卡片
+        function createSheetCard(sheet) {
+            const card = document.createElement('div');
+            card.className = 'sheet-card';
+
+            // 根據檔案類型選擇圖示文字
+            const iconText = sheet.filename.endsWith('.gtab') ? 'TAB' : 'TXT';
+
+            card.innerHTML = `
+                <div class="sheet-icon">${iconText}</div>
+                <div class="sheet-title" title="${sheet.title}">${sheet.title || '未命名歌曲'}</div>
+                <div class="sheet-artist" title="${sheet.artist}">${sheet.artist || '未知演唱者'}</div>
+                <div class="sheet-actions">
+                    <button class="sheet-btn open-btn">打開</button>
+                    <button class="sheet-btn edit-btn">編輯</button>
+                </div>
+            `;
+
+            // 使用事件監聽器避免檔案名稱中特殊字符的問題
+            const openBtn = card.querySelector('.open-btn');
+            const editBtn = card.querySelector('.edit-btn');
+            
+            openBtn.addEventListener('click', () => openSheet(sheet.filename));
+            editBtn.addEventListener('click', () => editSheet(sheet.filename));
+
+            return card;
+        }
+
+        // 開啟樂譜
+        function openSheet(filename) {
+            const sheet = currentSheets.find(s => s.filename === filename);
+            if (sheet) {
+                const encodedContent = encodeURIComponent(sheet.content);
+                const url = `reader.html?content=${encodedContent}`;
+                window.open(url, '_blank');
+            }
+        }
+
+        // 編輯樂譜
+        function editSheet(filename) {
+            const sheet = currentSheets.find(s => s.filename === filename);
+            if (sheet) {
+                const encodedContent = encodeURIComponent(sheet.content);
+                const encodedFilename = encodeURIComponent(filename);
+                const url = `editor.html?content=${encodedContent}&filename=${encodedFilename}`;
+                window.open(url, '_blank');
+            }
+        }
+
+        // 更新狀態
+        function updateStatus() {
+            const total = currentSheets.length;
+            const filtered = filteredSheets.length;
+
+            if (searchInput.value.trim()) {
+                sheetCount.textContent = `${filtered} / ${total} 首樂譜`;
+            } else {
+                sheetCount.textContent = `${total} 首樂譜`;
+            }
+        }
+
+        // 處理選擇資料夾
+        async function handleSelectFolder() {
+            // 檢查瀏覽器是否支援 File System Access API
+            if (!('showDirectoryPicker' in window)) {
+                alert('您的瀏覽器不支援資料夾選擇功能。請使用 Chrome 86+ 或 Edge 86+，或啟動服務器模式。');
+                return;
+            }
+
+            try {
+                showLoadingState();
+
+                // 使用 File System Access API 選擇資料夾
+                const directoryHandle = await window.showDirectoryPicker({
+                    mode: 'read',
+                    startIn: 'documents'
+                });
+
+                const sheets = [];
+
+                // 掃描資料夾中的樂譜檔案
+                for await (const [name, handle] of directoryHandle.entries()) {
+                    if (handle.kind === 'file' && (name.endsWith('.txt') || name.endsWith('.gtab'))) {
+                        try {
+                            const file = await handle.getFile();
+                            const content = await file.text();
+                            const meta = parseSheetMeta(content);
+
+                            sheets.push({
+                                filename: file.name,
+                                title: meta.title || file.name.replace(/\.(txt|gtab)$/, ''),
+                                artist: meta.artist || '',
+                                content: content,
+                                lastModified: file.lastModified,
+                                addedDate: new Date().toISOString()
+                            });
+                        } catch (error) {
+                            console.error(`無法讀取檔案 ${name}:`, error);
+                        }
+                    }
+                }
+
+                currentSheets = sheets;
+                filteredSheets = [...currentSheets];
+                renderSheets();
+                updateStatus();
+
+                if (sheets.length > 0) {
+                    statusText.textContent = `讀取完成`;
+                } else {
+                    statusText.textContent = '資料夾中未找到樂譜檔案';
+                    showEmptyState();
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    statusText.textContent = '用戶取消選擇';
+                } else {
+                    console.error('選擇資料夾失敗:', error);
+                    statusText.textContent = '選擇資料夾失敗';
+                }
+            } finally {
+                hideLoadingState();
+            }
+        }
+
+        // 顯示空狀態
+        function showEmptyState() {
+            sheetsContainer.style.display = 'none';
+            emptyState.style.display = 'block';
+            localFileState.style.display = 'none';
+        }
+
+        // 隱藏空狀態
+        function hideEmptyState() {
+            sheetsContainer.style.display = 'grid';
+            emptyState.style.display = 'none';
+            localFileState.style.display = 'none';
+        }
+
+        // 顯示本地檔案狀態
+        function showLocalFileState() {
+            sheetsContainer.style.display = 'none';
+            emptyState.style.display = 'none';
+            localFileState.style.display = 'block';
+        }
+
+        // 頁面載入完成後初始化
+        window.addEventListener('load', init);
+
+        // 頁面卸載時清理定時器
+        window.addEventListener('beforeunload', stopAutoRefresh);
+    </script>
+</body>
+</html>

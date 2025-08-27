@@ -7,18 +7,15 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-
-
     <!-- 倒數數字 -->
     <div id="countdownDisplay"></div>
 
     <!-- 頂部工具欄 -->
     <header class="topbar">
-
       <button id="homeBtn" class="btn primary">首頁</button>
       <button id="editBtn" class="btn secondary">編輯模式</button>
       <button id="importBtn" class="btn">載入</button>
-      
+
       <!-- 手機版設定按鈕 (480px以下顯示) -->
       <input
         id="importFile"
@@ -70,12 +67,30 @@
         />
         預備拍
       </label>
-      <button id="mobileSettingsBtn" class="btn-icon mobile-only" style="display: none;">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+      <button
+        id="mobileSettingsBtn"
+        class="btn-icon mobile-only"
+        style="display: none"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="size-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"
+          />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+          />
         </svg>
-        
       </button>
     </header>
 
@@ -142,11 +157,19 @@
           </div>
           <div class="form-group">
             <label class="form-label">
-              <input id="mobileShowFingering" type="checkbox" style="margin-right: 8px" />
+              <input
+                id="mobileShowFingering"
+                type="checkbox"
+                style="margin-right: 8px"
+              />
               指法
             </label>
             <label class="form-label">
-              <input id="mobileCountdownEnabled" type="checkbox" style="margin-right: 8px" />
+              <input
+                id="mobileCountdownEnabled"
+                type="checkbox"
+                style="margin-right: 8px"
+              />
               預備拍
             </label>
           </div>
@@ -223,14 +246,14 @@
         if (!m) return chord;
 
         const root = m[1];
-        const rest = m[2] || '';
+        const rest = m[2] || "";
 
         const rootIndex = chordMap[root];
         if (rootIndex === undefined) return chord;
         const newRoot = chordNames[(rootIndex + semitones + 12) % 12];
 
         // 若存在轉位（slash chord），同時變調斜線後的低音音名
-        const slashPos = rest.indexOf('/');
+        const slashPos = rest.indexOf("/");
         if (slashPos !== -1) {
           const pre = rest.slice(0, slashPos); // 後綴維持不變（m, dim, aug, sus, 7, maj7...）
           const bassPart = rest.slice(slashPos + 1);
@@ -238,13 +261,13 @@
           const bm = bassPart.match(/^([A-G][#b]?)(.*)$/);
           if (bm) {
             const bassRoot = bm[1];
-            const bassRest = bm[2] || '';
+            const bassRest = bm[2] || "";
             const bassIndex = chordMap[bassRoot];
             if (bassIndex === undefined) {
               return newRoot + rest; // 低音不是音名則不處理
             }
             const newBass = chordNames[(bassIndex + semitones + 12) % 12];
-            return newRoot + pre + '/' + newBass + bassRest;
+            return newRoot + pre + "/" + newBass + bassRest;
           }
         }
 
@@ -252,95 +275,104 @@
         return newRoot + rest;
       }
 
+      // 樂譜建立
+      function buildChordLine(lyrics, chords, options = {}) {
+        const {
+          showFingering = false,
+          transposeValue = 0,
+          customChordFingerings = {},
+          chordFingerings = {},
+        } = options;
 
-// 樂譜建立
-function buildChordLine(lyrics, chords, options = {}) {
-  const {
-    showFingering = false,
-    transposeValue = 0,
-    customChordFingerings = {},
-    chordFingerings = {}
-  } = options;
+        const getChordContent = (chord) => {
+          if (showFingering) {
+            return createChordDiagram(chord, {
+              transposeValue,
+              customChordFingerings,
+              chordFingerings,
+            });
+          }
 
-  const getChordContent = (chord) => {
-    if (showFingering) {
-      return createChordDiagram(chord, { 
-        transposeValue, 
-        customChordFingerings, 
-        chordFingerings 
-      });
-    }
-    
-    const displayChord = transposeChord(chord, transposeValue);
-    return `<span class="${SCORE_CONFIG.cssClasses.chordName}">${displayChord}</span>`;
-  };
+          const displayChord = transposeChord(chord, transposeValue);
+          return `<span class="${SCORE_CONFIG.cssClasses.chordName}">${displayChord}</span>`;
+        };
 
-  const chordBlockHeight = showFingering ? '75px' : '1.5em';
+        const chordBlockHeight = showFingering ? "75px" : "1.5em";
 
-  const createBlock = (chordContent, lyricContent, blockChordHeight = chordBlockHeight) => {
-    const lyricClass = showFingering ? 'lyric-content with-fingering' : 'lyric-content';
-    return `<div style="display: flex; flex-direction: column; align-items: flex-start;">
+        const createBlock = (
+          chordContent,
+          lyricContent,
+          blockChordHeight = chordBlockHeight
+        ) => {
+          const lyricClass = showFingering
+            ? "lyric-content with-fingering"
+            : "lyric-content";
+          return `<div style="display: flex; flex-direction: column; align-items: flex-start;">
       <div style="height: ${blockChordHeight}; margin-bottom: 2px; display: flex; align-items: flex-end;">${chordContent}</div>
-      <div class="${lyricClass}">${lyricContent || '&nbsp;'}</div>
+      <div class="${lyricClass}">${lyricContent || "&nbsp;"}</div>
     </div>`;
-  };
+        };
 
-  const wrapContainer = (content) =>
-    `<div style="display: flex; flex-wrap: wrap; align-items: flex-end; margin-bottom: 5px;">${content}</div>`;
+        const wrapContainer = (content) =>
+          `<div style="display: flex; flex-wrap: wrap; align-items: flex-end; margin-bottom: 5px;">${content}</div>`;
 
-  // 無和弦情況
-  if (chords.length === 0) {
-    return lyrics.trim()
-      ? wrapContainer(createBlock("", lyrics, chordBlockHeight))
-      : "<div></div>";
-  }
+        // 無和弦情況
+        if (chords.length === 0) {
+          return lyrics.trim()
+            ? wrapContainer(createBlock("", lyrics, chordBlockHeight))
+            : "<div></div>";
+        }
 
-  const sortedChords = [...chords].sort((a, b) => a.pos - b.pos);
+        const sortedChords = [...chords].sort((a, b) => a.pos - b.pos);
 
-  // 只有和弦沒有歌詞
-  if (!lyrics.trim()) {
-    return `<div style="display: flex; flex-wrap: wrap; align-items: flex-end; margin-bottom: 5px; gap: 8px;">
+        // 只有和弦沒有歌詞
+        if (!lyrics.trim()) {
+          return `<div style="display: flex; flex-wrap: wrap; align-items: flex-end; margin-bottom: 5px; gap: 8px;">
       ${sortedChords
         .map((chord) => createBlock(getChordContent(chord.chord), "&nbsp;"))
         .join("")}
     </div>`;
-  }
-  
-  // 正常情況：有和弦也有歌詞
-  let blocks = [];
+        }
 
-  if (sortedChords[0]?.pos > 0) {
-    const initialLyrics = lyrics.slice(0, sortedChords[0].pos).replace(/^\s+/, '');
-    if (initialLyrics) {
-      blocks.push(createBlock("", initialLyrics, chordBlockHeight));
-    }
-  }
-   
-  sortedChords.forEach((chord, index) => {
-    const nextPos = sortedChords[index + 1]?.pos || lyrics.length;
-    let lyricPart = lyrics.slice(chord.pos, nextPos).replace(/^\s+/, '');
+        // 正常情況：有和弦也有歌詞
+        let blocks = [];
 
-    const currentPos = chord.pos;
-    const isLastChordAtThisPosition =
-      index === sortedChords.length - 1 ||
-      sortedChords[index + 1].pos !== currentPos;
+        if (sortedChords[0]?.pos > 0) {
+          const initialLyrics = lyrics
+            .slice(0, sortedChords[0].pos)
+            .replace(/^\s+/, "");
+          if (initialLyrics) {
+            blocks.push(createBlock("", initialLyrics, chordBlockHeight));
+          }
+        }
 
-    if (!isLastChordAtThisPosition) {
-      lyricPart = "";
-    }
+        sortedChords.forEach((chord, index) => {
+          const nextPos = sortedChords[index + 1]?.pos || lyrics.length;
+          let lyricPart = lyrics.slice(chord.pos, nextPos).replace(/^\s+/, "");
 
-    const displayLyrics = lyricPart || "&nbsp;";
-    blocks.push(createBlock(getChordContent(chord.chord), displayLyrics));
-  });
+          const currentPos = chord.pos;
+          const isLastChordAtThisPosition =
+            index === sortedChords.length - 1 ||
+            sortedChords[index + 1].pos !== currentPos;
 
-  return wrapContainer(blocks.join(""));
-}
+          if (!isLastChordAtThisPosition) {
+            lyricPart = "";
+          }
 
+          const displayLyrics = lyricPart || "&nbsp;";
+          blocks.push(createBlock(getChordContent(chord.chord), displayLyrics));
+        });
+
+        return wrapContainer(blocks.join(""));
+      }
 
       // 獲取當前樂譜內容
       function getCurrentSheetContent() {
         // 如果沒有載入任何樂譜，返回空字符串
-        if (!song.sections.length || song.sections.every(sec => !sec.lines.length)) {
+        if (
+          !song.sections.length ||
+          song.sections.every((sec) => !sec.lines.length)
+        ) {
           return "";
         }
 
@@ -361,7 +393,7 @@ function buildChordLine(lyrics, chords, options = {}) {
         if (song.meta.capo) content += `#capo: ${song.meta.capo}\n`;
 
         // 添加自定義和弦指法
-        Object.keys(customChordFingerings).forEach(chordName => {
+        Object.keys(customChordFingerings).forEach((chordName) => {
           const fingering = customChordFingerings[chordName];
           content += `@${chordName}: ${fingering.join(",")}\n`;
         });
@@ -375,7 +407,7 @@ function buildChordLine(lyrics, chords, options = {}) {
           content += `[${sectionKey}]\n`;
 
           // 添加段落內容
-          section.lines.forEach(line => {
+          section.lines.forEach((line) => {
             if (line.raw) {
               // 如果有原始內容，直接使用
               content += line.raw + "\n";
@@ -385,9 +417,11 @@ function buildChordLine(lyrics, chords, options = {}) {
               let lastPos = 0;
 
               // 按位置排序和弦
-              const sortedChords = [...line.chords].sort((a, b) => a.pos - b.pos);
+              const sortedChords = [...line.chords].sort(
+                (a, b) => a.pos - b.pos
+              );
 
-              sortedChords.forEach(chord => {
+              sortedChords.forEach((chord) => {
                 // 添加和弦前的歌詞
                 lineContent += line.lyrics.slice(lastPos, chord.pos);
                 // 添加和弦
@@ -468,11 +502,11 @@ function buildChordLine(lyrics, chords, options = {}) {
           i++;
         }
         const scoreText = lines.slice(i).join("\n");
-        
+
         // 保存原始內容以便重建
         const originalContent = text;
         song.originalContent = originalContent;
-        
+
         song.sections = parseInput(scoreText);
 
         song.meta.title = meta.title || song.meta.title;
@@ -510,16 +544,18 @@ function buildChordLine(lyrics, chords, options = {}) {
         document.getElementById("subtitle").textContent = subtitle;
 
         const score = document.getElementById("score");
-        
+
         // 檢查是否有內容
-        const hasContent = song.sections.length > 0 && song.sections.some(sec => sec.lines.length > 0);
-        
+        const hasContent =
+          song.sections.length > 0 &&
+          song.sections.some((sec) => sec.lines.length > 0);
+
         if (hasContent) {
           score.classList.add("has-content");
         } else {
           score.classList.remove("has-content");
         }
-        
+
         const fontSize = Math.max(
           10,
           Math.min(30, +document.getElementById("fontPx").value || 15)
@@ -534,6 +570,13 @@ function buildChordLine(lyrics, chords, options = {}) {
           !song.sections.length ||
           song.sections.every((sec) => !sec.lines.length)
         ) {
+          const headerEl = document.querySelector(
+            ".card > .meta, .card > header.meta, .card > header"
+          );
+          if (headerEl) headerEl.style.display = "none";
+          const cardEl = document.querySelector(".card");
+          if (cardEl) cardEl.style.padding = "0";
+
           document.getElementById("title").textContent = "";
           document.getElementById("subtitle").textContent = "";
           const tip = document.createElement("div");
@@ -549,10 +592,12 @@ function buildChordLine(lyrics, chords, options = {}) {
           `;
 
           // 防止預設拖曳行為
-          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            tip.addEventListener(eventName, preventDefaults, false);
-          });
-          
+          ["dragenter", "dragover", "dragleave", "drop"].forEach(
+            (eventName) => {
+              tip.addEventListener(eventName, preventDefaults, false);
+            }
+          );
+
           function preventDefaults(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -573,33 +618,33 @@ function buildChordLine(lyrics, chords, options = {}) {
           });
 
           // 拖曳視覺回饋
-          tip.addEventListener("dragenter", function() {
+          tip.addEventListener("dragenter", function () {
             this.style.backgroundColor = "#e3f2fd";
             this.style.border = "2px dashed #2196f3";
           });
 
-          tip.addEventListener("dragleave", function() {
+          tip.addEventListener("dragleave", function () {
             this.style.backgroundColor = "transparent";
             this.style.border = "none";
           });
 
-          tip.addEventListener("drop", function(e) {
+          tip.addEventListener("drop", function (e) {
             this.style.backgroundColor = "transparent";
             this.style.border = "none";
-            
+
             const dt = e.dataTransfer;
             const files = dt.files;
-            
+
             if (files.length > 0) {
               const file = files[0];
-              if (file.name.endsWith('.txt') || file.name.endsWith('.gtab')) {
+              if (file.name.endsWith(".txt") || file.name.endsWith(".gtab")) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                   importScore(e.target.result);
                 };
-                reader.readAsText(file, 'utf-8');
+                reader.readAsText(file, "utf-8");
               } else {
-                alert('請拖曳 .txt 或 .gtab 格式的檔案');
+                alert("請選擇 .txt 或 .gtab 格式的檔案");
               }
             }
           });
@@ -608,7 +653,13 @@ function buildChordLine(lyrics, chords, options = {}) {
         } else {
           // 清空 score 區域，準備渲染樂譜內容
           score.innerHTML = "";
-          
+          const headerEl = document.querySelector(
+            ".card > .meta, .card > header.meta, .card > header"
+          );
+          if (headerEl) headerEl.style.display = "";
+          const cardEl = document.querySelector(".card");
+          if (cardEl) cardEl.style.padding = "";//恢復樂譜卡片樣式
+
           song.sections.forEach((sec) => {
             const h = document.createElement("div");
             h.className = "sec";
@@ -753,21 +804,22 @@ function buildChordLine(lyrics, chords, options = {}) {
             lineGap: document.getElementById("lineGap").value,
             transpose: document.getElementById("transpose").value,
             showFingering: document.getElementById("showFingering").checked,
-            countdownEnabled: document.getElementById("countdownEnabled").checked,
-            speed: document.getElementById("speed").value
+            countdownEnabled:
+              document.getElementById("countdownEnabled").checked,
+            speed: document.getElementById("speed").value,
           };
           localStorage.setItem("readerSettings", JSON.stringify(settings));
 
           // 獲取當前樂譜內容
           const currentContent = getCurrentSheetContent();
-          
+
           // 如果有內容，將其編碼到 URL 中傳遞給編輯器
           let url = "editor.html";
           if (currentContent && currentContent.trim()) {
             const encodedContent = encodeURIComponent(currentContent);
             url += `?content=${encodedContent}`;
           }
-          
+
           window.location.href = url;
         };
 
@@ -778,7 +830,6 @@ function buildChordLine(lyrics, chords, options = {}) {
         document.getElementById("importBtn").onclick = function () {
           document.getElementById("importFile").click();
         };
-
 
         document
           .getElementById("importFile")
@@ -812,58 +863,82 @@ function buildChordLine(lyrics, chords, options = {}) {
             const settings = JSON.parse(savedSettings);
             document.getElementById("fontPx").value = settings.fontSize || 18;
             document.getElementById("lineGap").value = settings.lineGap || 14;
-            document.getElementById("transpose").value = settings.transpose || 0;
-            document.getElementById("showFingering").checked = settings.showFingering || false;
-            document.getElementById("countdownEnabled").checked = settings.countdownEnabled || false;
+            document.getElementById("transpose").value =
+              settings.transpose || 0;
+            document.getElementById("showFingering").checked =
+              settings.showFingering || false;
+            document.getElementById("countdownEnabled").checked =
+              settings.countdownEnabled || false;
             document.getElementById("speed").value = settings.speed || 30;
-            
+
             // 同步手機版設定值
-            document.getElementById("mobileFontPx").value = settings.fontSize || 18;
-            document.getElementById("mobileLineGap").value = settings.lineGap || 14;
-            document.getElementById("mobileTranspose").value = settings.transpose || 0;
-            document.getElementById("mobileShowFingering").checked = settings.showFingering || false;
-            document.getElementById("mobileCountdownEnabled").checked = settings.countdownEnabled || false;
+            document.getElementById("mobileFontPx").value =
+              settings.fontSize || 18;
+            document.getElementById("mobileLineGap").value =
+              settings.lineGap || 14;
+            document.getElementById("mobileTranspose").value =
+              settings.transpose || 0;
+            document.getElementById("mobileShowFingering").checked =
+              settings.showFingering || false;
+            document.getElementById("mobileCountdownEnabled").checked =
+              settings.countdownEnabled || false;
           } catch (e) {
             console.log("無法解析保存的設置");
           }
         }
 
         // 手機版設定按鈕事件
-        document.getElementById("mobileSettingsBtn").onclick = function() {
+        document.getElementById("mobileSettingsBtn").onclick = function () {
           // 同步當前設定值到手機版彈窗
-          document.getElementById("mobileFontPx").value = document.getElementById("fontPx").value;
-          document.getElementById("mobileLineGap").value = document.getElementById("lineGap").value;
-          document.getElementById("mobileTranspose").value = document.getElementById("transpose").value;
-          document.getElementById("mobileShowFingering").checked = document.getElementById("showFingering").checked;
-          document.getElementById("mobileCountdownEnabled").checked = document.getElementById("countdownEnabled").checked;
-          
+          document.getElementById("mobileFontPx").value =
+            document.getElementById("fontPx").value;
+          document.getElementById("mobileLineGap").value =
+            document.getElementById("lineGap").value;
+          document.getElementById("mobileTranspose").value =
+            document.getElementById("transpose").value;
+          document.getElementById("mobileShowFingering").checked =
+            document.getElementById("showFingering").checked;
+          document.getElementById("mobileCountdownEnabled").checked =
+            document.getElementById("countdownEnabled").checked;
+
           // 顯示彈窗
-          document.getElementById("mobileSettingsModal").classList.add("visible");
+          document
+            .getElementById("mobileSettingsModal")
+            .classList.add("visible");
         };
 
         // 手機版設定彈窗確定按鈕
-        document.getElementById("mobileSettingsConfirm").onclick = function() {
+        document.getElementById("mobileSettingsConfirm").onclick = function () {
           // 將手機版設定值同步到主設定
-          document.getElementById("fontPx").value = document.getElementById("mobileFontPx").value;
-          document.getElementById("lineGap").value = document.getElementById("mobileLineGap").value;
-          document.getElementById("transpose").value = document.getElementById("mobileTranspose").value;
-          document.getElementById("showFingering").checked = document.getElementById("mobileShowFingering").checked;
-          document.getElementById("countdownEnabled").checked = document.getElementById("mobileCountdownEnabled").checked;
-          
+          document.getElementById("fontPx").value =
+            document.getElementById("mobileFontPx").value;
+          document.getElementById("lineGap").value =
+            document.getElementById("mobileLineGap").value;
+          document.getElementById("transpose").value =
+            document.getElementById("mobileTranspose").value;
+          document.getElementById("showFingering").checked =
+            document.getElementById("mobileShowFingering").checked;
+          document.getElementById("countdownEnabled").checked =
+            document.getElementById("mobileCountdownEnabled").checked;
+
           // 觸發重新渲染
           render();
-          
+
           // 關閉彈窗
-          document.getElementById("mobileSettingsModal").classList.remove("visible");
+          document
+            .getElementById("mobileSettingsModal")
+            .classList.remove("visible");
         };
 
         // 手機版設定彈窗取消按鈕
-        document.getElementById("mobileSettingsCancel").onclick = function() {
-          document.getElementById("mobileSettingsModal").classList.remove("visible");
+        document.getElementById("mobileSettingsCancel").onclick = function () {
+          document
+            .getElementById("mobileSettingsModal")
+            .classList.remove("visible");
         };
 
         // 點擊彈窗背景關閉
-        document.getElementById("mobileSettingsModal").onclick = function(e) {
+        document.getElementById("mobileSettingsModal").onclick = function (e) {
           if (e.target === this) {
             this.classList.remove("visible");
           }
@@ -873,16 +948,14 @@ function buildChordLine(lyrics, chords, options = {}) {
         render();
       }
 
-
-
-      window.onload = function() {
+      window.onload = function () {
         init();
-        
+
         // 優先從 localStorage 讀取內容，否則兼容舊的 ?content，再 fallback 空內容
         const urlParams = new URLSearchParams(window.location.search);
-        const contentFromStorage = localStorage.getItem('currentSheetContent');
-        const contentParam = urlParams.get('content');
-        const titleParam = urlParams.get('title');
+        const contentFromStorage = localStorage.getItem("currentSheetContent");
+        const contentParam = urlParams.get("content");
+        const titleParam = urlParams.get("title");
 
         let contentToLoad = null;
         if (contentFromStorage && contentFromStorage.trim()) {
@@ -896,12 +969,15 @@ function buildChordLine(lyrics, chords, options = {}) {
         }
 
         // 清除一次性內容，避免舊內容殘留
-        localStorage.removeItem('currentSheetContent');
+        localStorage.removeItem("currentSheetContent");
 
         // 清理網址，只保留簡短的標題參數（若存在）
-        const finalTitle = titleParam || (parseSheetMeta(contentToLoad || "").title || "");
-        const newUrl = finalTitle ? `reader.html?${encodeURIComponent(finalTitle)}` : 'reader.html';
-        window.history.replaceState({}, '', newUrl);
+        const finalTitle =
+          titleParam || parseSheetMeta(contentToLoad || "").title || "";
+        const newUrl = finalTitle
+          ? `reader.html?${encodeURIComponent(finalTitle)}`
+          : "reader.html";
+        window.history.replaceState({}, "", newUrl);
       };
     </script>
   </body>

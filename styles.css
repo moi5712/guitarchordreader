@@ -1034,7 +1034,45 @@ body {
     display: none;
   }
 }
+@media (max-width: 685px) {
+    /* 在手機版顯示設定按鈕 */
+  .mobile-only {
+    display: flex !important;
+  }
+  
+  /* 手機板設定選項 */
+  .topbar .tiny:not(.mobile-only),.topbar .input:not(.mobile-only) {
+    display: none;
+  }
+  .modal-body .form-group{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+    .settings-modal {
+    max-width: 70%;
+    margin: 20px;
+    padding: 36px;
+  }
+  
+  .modal-body {
+    margin-bottom: 10px;
+  }
+  
+  .modal-footer {
+
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+  
+  .modal-footer .btn {
+    width: 100%;
+  }
+}
 @media (max-width: 480px) {
+
+  
   .speed-slider {
     width: -webkit-fill-available !important;
   }
@@ -1045,6 +1083,16 @@ body {
     transform: translate(-50%, 0);
     justify-content: space-between;
   }
+  .wrap {
+    padding: 80px 0px 0px 0px;
+    
+  }
+  .card{
+    border-radius: 0px;
+    border: 0px;
+    box-shadow: none;
+  }
+
 }
 @media (max-width: 357px) {
   .library-actions {

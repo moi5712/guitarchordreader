@@ -18,6 +18,8 @@
       <button id="homeBtn" class="btn primary">首頁</button>
       <button id="editBtn" class="btn secondary">編輯模式</button>
       <button id="importBtn" class="btn">載入</button>
+      
+      <!-- 手機版設定按鈕 (480px以下顯示) -->
       <input
         id="importFile"
         type="file"
@@ -68,6 +70,13 @@
         />
         預備拍
       </label>
+      <button id="mobileSettingsBtn" class="btn-icon mobile-only" style="display: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+        </svg>
+        
+      </button>
     </header>
 
     <main class="wrap">
@@ -92,6 +101,61 @@
         max="100"
         style="width: 200px"
       />
+    </div>
+
+    <!-- 手機版設定彈窗 -->
+    <div id="mobileSettingsModal" class="modal-overlay">
+      <div class="modal-content settings-modal">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">字級</label>
+            <input
+              id="mobileFontPx"
+              class="input"
+              type="number"
+              value="18"
+              min="10"
+              max="30"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">行距</label>
+            <input
+              id="mobileLineGap"
+              class="input"
+              type="number"
+              value="14"
+              min="0"
+              max="100"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">變調</label>
+            <input
+              id="mobileTranspose"
+              class="input"
+              type="number"
+              value="0"
+              min="-6"
+              max="6"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">
+              <input id="mobileShowFingering" type="checkbox" style="margin-right: 8px" />
+              指法
+            </label>
+            <label class="form-label">
+              <input id="mobileCountdownEnabled" type="checkbox" style="margin-right: 8px" />
+              預備拍
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="mobileSettingsCancel" class="btn">取消</button>
+          <button id="mobileSettingsConfirm" class="btn primary">確定</button>
+        </div>
+      </div>
     </div>
 
     <!-- 引入和弦數據庫 -->
@@ -752,10 +816,58 @@ function buildChordLine(lyrics, chords, options = {}) {
             document.getElementById("showFingering").checked = settings.showFingering || false;
             document.getElementById("countdownEnabled").checked = settings.countdownEnabled || false;
             document.getElementById("speed").value = settings.speed || 30;
+            
+            // 同步手機版設定值
+            document.getElementById("mobileFontPx").value = settings.fontSize || 18;
+            document.getElementById("mobileLineGap").value = settings.lineGap || 14;
+            document.getElementById("mobileTranspose").value = settings.transpose || 0;
+            document.getElementById("mobileShowFingering").checked = settings.showFingering || false;
+            document.getElementById("mobileCountdownEnabled").checked = settings.countdownEnabled || false;
           } catch (e) {
             console.log("無法解析保存的設置");
           }
         }
+
+        // 手機版設定按鈕事件
+        document.getElementById("mobileSettingsBtn").onclick = function() {
+          // 同步當前設定值到手機版彈窗
+          document.getElementById("mobileFontPx").value = document.getElementById("fontPx").value;
+          document.getElementById("mobileLineGap").value = document.getElementById("lineGap").value;
+          document.getElementById("mobileTranspose").value = document.getElementById("transpose").value;
+          document.getElementById("mobileShowFingering").checked = document.getElementById("showFingering").checked;
+          document.getElementById("mobileCountdownEnabled").checked = document.getElementById("countdownEnabled").checked;
+          
+          // 顯示彈窗
+          document.getElementById("mobileSettingsModal").classList.add("visible");
+        };
+
+        // 手機版設定彈窗確定按鈕
+        document.getElementById("mobileSettingsConfirm").onclick = function() {
+          // 將手機版設定值同步到主設定
+          document.getElementById("fontPx").value = document.getElementById("mobileFontPx").value;
+          document.getElementById("lineGap").value = document.getElementById("mobileLineGap").value;
+          document.getElementById("transpose").value = document.getElementById("mobileTranspose").value;
+          document.getElementById("showFingering").checked = document.getElementById("mobileShowFingering").checked;
+          document.getElementById("countdownEnabled").checked = document.getElementById("mobileCountdownEnabled").checked;
+          
+          // 觸發重新渲染
+          render();
+          
+          // 關閉彈窗
+          document.getElementById("mobileSettingsModal").classList.remove("visible");
+        };
+
+        // 手機版設定彈窗取消按鈕
+        document.getElementById("mobileSettingsCancel").onclick = function() {
+          document.getElementById("mobileSettingsModal").classList.remove("visible");
+        };
+
+        // 點擊彈窗背景關閉
+        document.getElementById("mobileSettingsModal").onclick = function(e) {
+          if (e.target === this) {
+            this.classList.remove("visible");
+          }
+        };
 
         song.sections = [];
         render();

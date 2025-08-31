@@ -498,7 +498,12 @@ function parseSheetMeta(content) {
 
     const match = trimmed.match(/^#(\w+):\s*(.*)$/);
     if (match) {
-      meta[match[1]] = match[2];
+      if (match[1] === 'tags') {
+        // 解析標籤，支援逗號分隔
+        meta.tags = match[2].split(',').map(tag => tag.trim()).filter(tag => tag);
+      } else {
+        meta[match[1]] = match[2];
+      }
     }
   }
 

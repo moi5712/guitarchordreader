@@ -820,29 +820,61 @@ body {
 .library-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 0 20px 20px 20px;
 }
 
 .library-header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg);
+  z-index: 1000;
+  padding: 0; /* 移除 padding，讓內部元素控制間距 */
+}
+
+/* 新增 header 內容容器 */
+.library-header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* 優化標題和操作區域的排列 */
+.library-header-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid var(--line);
+  gap: 20px;
 }
 
 .library-title {
   font-size: 28px;
   font-weight: 600;
   color: var(--ink);
+  margin: 0;
+  flex-shrink: 0;
 }
 
 .library-actions {
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-shrink: 0;
 }
+
+
+.tag-buttons {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0;
+  min-height: 36px; /* 確保有最小高度 */
+}
+
 
 .sheets-grid {
   display: grid;
@@ -968,6 +1000,119 @@ body {
   font-size: 14px;
   color: var(--muted);
 }
+/* ==================== 標籤分類功能樣式 ==================== */
+
+/* 標籤篩選區域 */
+.tag-filter-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tag-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.tag-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tag-btn:hover {
+  background: var(--hover);
+  border-color: var(--muted);
+}
+
+.tag-btn.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+
+
+/* 樂譜卡片中的標籤顯示 */
+.sheet-tags {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  cursor: none;
+}
+
+.sheet-tag {
+  padding: 2px 6px;
+  background: #9ca3af;
+  color: white;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+/* ==================== 側邊欄佈局 ==================== */
+.library-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+}
+
+.sidebar {
+    width: 240px;
+    flex-shrink: 0;
+}
+
+.main-content {
+    flex-grow: 1;
+    min-width: 0; /* Prevents flexbox overflow issues */
+}
+
+.sidebar-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 80px;
+    background: var(--bg);
+    z-index: 10;
+    padding: 8px 0;
+}
+
+.sidebar .tag-filter-section {
+    flex-direction: column;
+    align-items: flex-start; /* 改為 flex-start，按鈕不會被拉伸 */
+    gap: 16px;
+}
+
+.sidebar .tag-buttons {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    overflow-y: auto;
+}
+
+.sidebar .tag-btn {
+    /* 允許按鈕內的文字換行 */
+    white-space: normal;
+    word-break: break-word;
+    text-align: left;
+    /* 強制按鈕寬度不超過容器 */
+    max-width: 100%;
+    /* 讓高度自適應內容 */
+    height: auto;
+}
 /* ==================== 響應式設計 ==================== */
 @media (max-width: 1024px) {
   /* 全站文字縮小為 0.8 倍（不受 px 限制），仍保留原字級控制效果 */
@@ -1023,7 +1168,7 @@ body {
   }
 
   .library-container {
-    padding: 16px;
+    padding: 0 16px 16px 16px;
   }
   .editor-layout {
     grid-template-columns: 260px 1fr;
@@ -1095,6 +1240,12 @@ body {
     backdrop-filter: blur(3px);
     -webkit-backdrop-filter: blur(3px);
   }
+  .sidebar{
+    display: none;
+  }
+  .sheet-tags{
+    display: none;
+  }
 }
 @media (max-width: 357px) {
   .library-actions {
@@ -1133,3 +1284,4 @@ body {
     gap: 0px;
   }
 }
+

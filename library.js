@@ -2,7 +2,9 @@
         let currentSheets = [];
         let filteredSheets = [];
         let isLoading = false;
-        let autoRefreshInterval = null;
+        let normalTagCounts = new Map();
+        let artistTagCounts = new Map();
+        let selectedTags = new Set();
 
         // DOM 元素
         const sheetsContainer = document.getElementById('sheetsContainer');
@@ -13,61 +15,24 @@
         const statusText = document.getElementById('statusText');
         const sheetCount = document.getElementById('sheetCount');
         const searchInput = document.getElementById('searchInput');
-        const refreshBtn = document.getElementById('refreshBtn');
-        const selectFolderBtn = document.getElementById('selectFolderBtn');
+        const normalTagButtons = document.getElementById('normalTagButtons');
+        const artistTagButtons = document.getElementById('artistTagButtons');
+        const clearTagsBtn = document.getElementById('clearTagsBtn');
 
         // 初始化
         async function init() {
             setupEventListeners();
             await loadSheetLibrary();
-            startAutoRefresh();
         }
 
-        // 開始自動重新整理 (每30秒檢查一次)
-        function startAutoRefresh() {
-            // 清除現有的定時器
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-            }
 
-            // 設置新的定時器
-            autoRefreshInterval = setInterval(async () => {
-                if (!isLoading) {
-                    console.log('正在讀取...');
-                    const oldCount = currentSheets.length;
-
-                    try {
-                        const sheets = await autoScanSheetsFolder();
-                        const newCount = sheets.length;
-
-                        // 只有在數量變化時才更新界面
-                        if (newCount !== oldCount) {
-                            currentSheets = sheets;
-                            filteredSheets = [...currentSheets];
-                            renderSheets();
-                            updateStatus();
-                            console.log(`樂譜數量變化：${oldCount} → ${newCount}`);
-                        }
-                    } catch (error) {
-                        console.error('讀取失敗:', error);
-                    }
-                }
-            }, 30000); // 30秒
-        }
-
-        // 停止自動重新整理
-        function stopAutoRefresh() {
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-                autoRefreshInterval = null;
-            }
-        }
 
         // 設置事件監聽器
         function setupEventListeners() {
             searchInput.addEventListener('input', handleSearch);
-            refreshBtn.addEventListener('click', handleRefresh);
-            selectFolderBtn.addEventListener('click', handleSelectFolder);
+            if (clearTagsBtn) {
+                clearTagsBtn.addEventListener('click', clearAllTags);
+            }
         }
 
         // GitHub API 掃描樂譜檔案
@@ -160,6 +125,7 @@
                                     filename: filename,
                                     title: meta.title || filename.replace(/\.(txt|gtab)$/, ''),
                                     artist: meta.artist || '',
+                                    tags: meta.tags || [],
                                     content: content,
                                     lastModified: Date.now(),
                                     addedDate: new Date().toISOString()
@@ -193,6 +159,13 @@
 
                 currentSheets = sheets;
                 filteredSheets = [...currentSheets];
+                
+                // 收集所有標籤
+                collectTags();
+                
+                // 渲染標籤按鈕
+                renderTagButtons();
+                
                 renderSheets();
                 updateStatus();
 
@@ -213,46 +186,10 @@
 
         // 處理搜尋
         function handleSearch(e) {
-            const query = e.target.value.toLowerCase().trim();
-            
-            if (query) {
-                filteredSheets = currentSheets.filter(sheet => 
-                    sheet.title.toLowerCase().includes(query) ||
-                    sheet.artist.toLowerCase().includes(query) ||
-                    sheet.filename.toLowerCase().includes(query)
-                );
-            } else {
-                filteredSheets = [...currentSheets];
-            }
-            
-            renderSheets();
-            updateStatus();
+            filterSheets();
         }
 
-        // 處理同步
-        async function handleRefresh() {
-            showLoadingState();
 
-            try {
-                const sheets = await autoScanSheetsFolder();
-                currentSheets = sheets;
-                filteredSheets = [...currentSheets];
-                renderSheets();
-                updateStatus();
-
-                if (sheets.length > 0) {
-                    statusText.textContent = `同步完成`;
-                } else {
-                    statusText.textContent = '未找到檔案';
-                    showEmptyState();
-                }
-            } catch (error) {
-                console.error('同步失敗:', error);
-                statusText.textContent = '同步失敗';
-            } finally {
-                hideLoadingState();
-            }
-        }
 
         // 顯示載入狀態
         function showLoadingState() {
@@ -295,6 +232,11 @@
                 <div class="sheet-icon">${iconText}</div>
                 <div class="sheet-title" title="${sheet.title}">${sheet.title || '未命名歌曲'}</div>
                 <div class="sheet-artist" title="${sheet.artist}">${sheet.artist || '未知演唱者'}</div>
+                ${sheet.tags && sheet.tags.length > 0 ? `
+                    <div class="sheet-tags">
+                        ${sheet.tags.map(tag => `<span class="sheet-tag">${tag}</span>`).join('')}
+                    </div>
+                ` : ''}
                 <div class="sheet-actions">
                     <button class="sheet-btn open-btn">打開</button>
                     <button class="sheet-btn edit-btn">編輯</button>
@@ -337,76 +279,14 @@
             const total = currentSheets.length;
             const filtered = filteredSheets.length;
 
-            if (searchInput.value.trim()) {
+            if (searchInput.value.trim() || selectedTags.size > 0) {
                 sheetCount.textContent = `${filtered} / ${total} 首樂譜`;
             } else {
                 sheetCount.textContent = `${total} 首樂譜`;
             }
         }
 
-        // 處理選擇資料夾
-        async function handleSelectFolder() {
-            // 檢查瀏覽器是否支援 File System Access API
-            if (!('showDirectoryPicker' in window)) {
-                alert('您的瀏覽器不支援資料夾選擇功能。請使用 Chrome 86+ 或 Edge 86+，或啟動服務器模式。');
-                return;
-            }
 
-            try {
-                showLoadingState();
-
-                // 使用 File System Access API 選擇資料夾
-                const directoryHandle = await window.showDirectoryPicker({
-                    mode: 'read',
-                    startIn: 'documents'
-                });
-
-                const sheets = [];
-
-                // 掃描資料夾中的樂譜檔案
-                for await (const [name, handle] of directoryHandle.entries()) {
-                    if (handle.kind === 'file' && (name.endsWith('.txt') || name.endsWith('.gtab'))) {
-                        try {
-                            const file = await handle.getFile();
-                            const content = await file.text();
-                            const meta = parseSheetMeta(content);
-
-                            sheets.push({
-                                filename: file.name,
-                                title: meta.title || file.name.replace(/\.(txt|gtab)$/, ''),
-                                artist: meta.artist || '',
-                                content: content,
-                                lastModified: file.lastModified,
-                                addedDate: new Date().toISOString()
-                            });
-                        } catch (error) {
-                            console.error(`無法讀取檔案 ${name}:`, error);
-                        }
-                    }
-                }
-
-                currentSheets = sheets;
-                filteredSheets = [...currentSheets];
-                renderSheets();
-                updateStatus();
-
-                if (sheets.length > 0) {
-                    statusText.textContent = `讀取完成`;
-                } else {
-                    statusText.textContent = '資料夾中未找到樂譜檔案';
-                    showEmptyState();
-                }
-            } catch (error) {
-                if (error.name === 'AbortError') {
-                    statusText.textContent = '用戶取消選擇';
-                } else {
-                    console.error('選擇資料夾失敗:', error);
-                    statusText.textContent = '選擇資料夾失敗';
-                }
-            } finally {
-                hideLoadingState();
-            }
-        }
 
         // 顯示空狀態
         function showEmptyState() {
@@ -429,8 +309,121 @@
             localFileState.style.display = 'block';
         }
 
+        // ==================== 標籤分類功能 ====================
+
+        // 收集所有標籤並計數
+        function collectTags() {
+            normalTagCounts.clear();
+            artistTagCounts.clear();
+
+            currentSheets.forEach(sheet => {
+                // 收集普通標籤
+                if (sheet.tags && Array.isArray(sheet.tags)) {
+                    sheet.tags.forEach(tag => {
+                        if (tag) {
+                            normalTagCounts.set(tag, (normalTagCounts.get(tag) || 0) + 1);
+                        }
+                    });
+                }
+                // 收集作者標籤
+                if (sheet.artist) {
+                    artistTagCounts.set(sheet.artist, (artistTagCounts.get(sheet.artist) || 0) + 1);
+                }
+            });
+        }
+
+        // 根據歌曲數量排序並渲染標籤按鈕
+        function renderTagButtons() {
+            if (!normalTagButtons || !artistTagButtons) return;
+            
+            normalTagButtons.innerHTML = '';
+            artistTagButtons.innerHTML = '';
+
+            const sortFn = (a, b) => {
+                if (b[1] !== a[1]) {
+                    return b[1] - a[1]; // 按數量降序
+                } 
+                return a[0].localeCompare(b[0]); // 按名稱升序
+            };
+
+            const createButton = (tag, count) => {
+                const button = document.createElement('button');
+                button.className = `tag-btn ${selectedTags.has(tag) ? 'active' : ''}`;
+                button.textContent = tag;
+                button.title = `${tag} (${count} 首)`;
+                button.onclick = () => toggleTag(tag);
+                return button;
+            };
+
+            const sortedNormalTags = Array.from(normalTagCounts.entries()).sort(sortFn);
+            const sortedArtistTags = Array.from(artistTagCounts.entries()).sort(sortFn);
+
+            // 渲染普通標籤
+            sortedNormalTags.forEach(([tag, count]) => {
+                normalTagButtons.appendChild(createButton(tag, count));
+            });
+
+            // 渲染作者標籤
+            sortedArtistTags.forEach(([tag, count]) => {
+                artistTagButtons.appendChild(createButton(tag, count));
+            });
+        }
+
+        // 切換標籤選擇
+        function toggleTag(tag) {
+            if (selectedTags.has(tag)) {
+                selectedTags.delete(tag);
+            } else {
+                selectedTags.add(tag);
+            }
+            
+            renderTagButtons();
+            filterSheets();
+        }
+
+        // 清除所有標籤篩選
+        function clearAllTags() {
+            selectedTags.clear();
+            renderTagButtons();
+            filterSheets();
+        }
+
+        // 篩選樂譜
+        function filterSheets() {
+            const searchQuery = searchInput.value.toLowerCase().trim();
+            
+            filteredSheets = currentSheets.filter(sheet => {
+                // 搜尋篩選
+                const matchesSearch = !searchQuery || 
+                    sheet.title.toLowerCase().includes(searchQuery) ||
+                    sheet.artist.toLowerCase().includes(searchQuery) ||
+                    sheet.filename.toLowerCase().includes(searchQuery) ||
+                    (sheet.tags && sheet.tags.some(tag => tag.toLowerCase().includes(searchQuery)));
+                
+                // 標籤篩選 (包含作者)
+                const allSheetTags = [...(sheet.tags || []), sheet.artist].filter(Boolean);
+                const matchesTags = selectedTags.size === 0 || 
+                    allSheetTags.some(tag => selectedTags.has(tag));
+                
+                return matchesSearch && matchesTags;
+            });
+            
+            renderSheets();
+            updateStatus();
+        }
+
+        
+        // 更新狀態
+        function updateStatus() {
+            const total = currentSheets.length;
+            const filtered = filteredSheets.length;
+
+            if (searchInput.value.trim() || selectedTags.size > 0) {
+                sheetCount.textContent = `${filtered} / ${total} 首樂譜`;
+            } else {
+                sheetCount.textContent = `${total} 首樂譜`;
+            }
+        }
+
         // 頁面載入完成後初始化
         window.addEventListener('load', init);
-
-        // 頁面卸載時清理定時器
-        window.addEventListener('beforeunload', stopAutoRefresh);

@@ -1,4 +1,4 @@
-      // 編輯器狀態
+// 編輯器狀態
       let editorHistory = [];
       let historyIndex = -1;
 
@@ -81,11 +81,12 @@
 
 
 
-
       async function newDocument() {
         if (await showConfirm("確定要新建文件嗎？未保存的內容將會丟失。")) {
           saveToHistory();
-          document.getElementById("editorTextarea").value = "";
+          const emptyContent = "#title: \n#artist: \n\n[verse]\n";
+          document.getElementById("editorTextarea").value = emptyContent;
+          sessionStorage.setItem("currentSheetContent", emptyContent);
           ["songTitle", "songArtist", "songKey", "songBpm", "songCapo"].forEach(
             (id) => {
               document.getElementById(id).value = "";
@@ -117,6 +118,7 @@
       function importDocument(text) {
         saveToHistory();
         document.getElementById("editorTextarea").value = text;
+        sessionStorage.setItem("currentSheetContent", text); // 更新暫存區
         const meta = parseSheetMeta(text);
 
         if (meta.title) document.getElementById("songTitle").value = meta.title;
@@ -311,7 +313,7 @@
 
         if (currentFilename) {
           // 如果有原始檔案名稱，詢問是否覆蓋
-          const overwrite = confirm(`是否覆蓋原檔案「${currentFilename}」？\n點擊「確定」覆蓋，點擊「取消」另存新檔。`);
+          const overwrite = confirm(`是否覆蓋原檔案 "${currentFilename}" ？\n點擊「確定」覆蓋，點擊「取消」另存新檔。`);
 
           if (overwrite) {
             fullFilename = currentFilename;
@@ -362,42 +364,35 @@
         // 設置初始編輯模式
         document.body.classList.add("editor-mode");
 
-        // 檢查URL參數
+        // 優先從 sessionStorage 恢復草稿，其次才從 URL 參數載入
+        let initialContent = sessionStorage.getItem("currentSheetContent") || "";
         const urlParams = new URLSearchParams(window.location.search);
         const contentParam = urlParams.get('content');
-        const filenameParam = urlParams.get('filename');
 
         if (contentParam) {
-          // 從URL載入內容
-          const content = decodeURIComponent(contentParam);
-          document.getElementById("editorTextarea").value = content;
+            initialContent = decodeURIComponent(contentParam);
+        }
+        
+        // 更新文本區和暫存區
+        document.getElementById("editorTextarea").value = initialContent;
+        sessionStorage.setItem("currentSheetContent", initialContent);
 
-          // 儲存檔案名稱
-          if (filenameParam) {
-            currentFilename = decodeURIComponent(filenameParam);
-          }
-
-          // 載入內容中的自定義和弦
-          loadCustomChordsFromText(content);
-        } else {
-          // 恢復之前保存的編輯內容
-          const savedContent = localStorage.getItem("editorContent");
-          if (savedContent) {
-            document.getElementById("editorTextarea").value = savedContent;
-            // 載入內容中的自定義和弦
-            loadCustomChordsFromText(savedContent);
-          }
+        // 從載入的內容更新歌曲資訊
+        if (initialContent) {
+            const meta = parseSheetMeta(initialContent);
+            if (meta.title) document.getElementById("songTitle").value = meta.title;
+            if (meta.artist) document.getElementById("songArtist").value = meta.artist;
+            if (meta.key) document.getElementById("songKey").value = meta.key;
+            if (meta.bpm) document.getElementById("songBpm").value = meta.bpm;
+            if (meta.capo) document.getElementById("songCapo").value = meta.capo;
+            loadCustomChordsFromText(initialContent);
         }
 
-        // 清理網址，只保留簡短的標題參數
-        const currentContentForUrl = document.getElementById("editorTextarea").value;
-        const metaForUrl = parseSheetMeta(currentContentForUrl || "");
-        const titleForUrl = metaForUrl.title || (currentFilename ? currentFilename.replace(/\.[^/.]+$/, "") : "");
-        
-        const newUrl = titleForUrl
-          ? `editor.html?${encodeURIComponent(titleForUrl)}`
-          : "editor.html";
-        window.history.replaceState({}, "", newUrl);
+
+        // 清理網址，避免重整時再次從 URL 載入
+        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+
 
         // 生成段落按鈕
         const sectionGrid = document.getElementById("sectionGrid");
@@ -421,22 +416,16 @@
 
         saveToHistory();
 
-        // 事件綁定
+        // --- 事件綁定 ---
         document.getElementById("homeBtn").onclick = () => {
           window.location.href = "library.html";
         };
 
         document.getElementById("playBtn").onclick = () => {
-          // 保存當前編輯內容到 localStorage，並以標題簡化網址
+          // 前往閱讀器前，確保最新的內容已存入暫存區
           const currentContent = document.getElementById("editorTextarea").value;
-          localStorage.setItem("editorContent", currentContent);
-          localStorage.setItem("currentSheetContent", currentContent);
-
-          // 從內容解析標題，作為網址顯示
-          const meta = parseSheetMeta(currentContent || "");
-          const title = (meta && meta.title) ? meta.title : "未命名";
-
-          window.location.href = `reader.html?${encodeURIComponent(title)}`;
+          sessionStorage.setItem("currentSheetContent", currentContent);
+          window.location.href = "reader.html";
         };
 
         document.getElementById("newBtn").onclick = newDocument;
@@ -449,6 +438,7 @@
           if (await showConfirm("確定要清空所有內容嗎？")) {
             saveToHistory();
             document.getElementById("editorTextarea").value = "";
+            sessionStorage.setItem("currentSheetContent", ""); // 同步清空暫存
           }
         };
         document.getElementById("updateMetaBtn").onclick = updateMetaInfo;
@@ -473,7 +463,16 @@
             };
             reader.readAsText(file, "utf-8");
           });
-
+        
+        // 自動儲存到 sessionStorage
+        let saveTimeout;
+        document.getElementById("editorTextarea").addEventListener("input", () => {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                const content = document.getElementById("editorTextarea").value;
+                sessionStorage.setItem("currentSheetContent", content);
+            }, 300);
+        });
 
 
         // 鍵盤快捷鍵
@@ -497,3 +496,41 @@
       }
 
       window.onload = init;
+
+      // 模態視窗功能
+      async function showConfirm(message, title = "請確認") {
+        return new Promise((resolve) => {
+          document.getElementById("modalTitle").textContent = title;
+          document.getElementById("modalMessage").textContent = message;
+          document.getElementById("modalConfirmBtn").classList.remove("hidden");
+          document.getElementById("modalCancelBtn").classList.remove("hidden");
+          document.getElementById("modalAlertOkBtn").classList.add("hidden");
+          document.getElementById("customModal").classList.remove("hidden");
+
+          document.getElementById("modalConfirmBtn").onclick = () => {
+            document.getElementById("customModal").classList.add("hidden");
+
+            resolve(true);
+          };
+          document.getElementById("modalCancelBtn").onclick = () => {
+            document.getElementById("customModal").classList.add("hidden");
+            resolve(false);
+          };
+        });
+      }
+
+      async function showAlert(message, title = "提示") {
+        return new Promise((resolve) => {
+          document.getElementById("modalTitle").textContent = title;
+          document.getElementById("modalMessage").textContent = message;
+          document.getElementById("modalConfirmBtn").classList.add("hidden");
+          document.getElementById("modalCancelBtn").classList.add("hidden");
+          document.getElementById("modalAlertOkBtn").classList.remove("hidden");
+          document.getElementById("customModal").classList.remove("hidden");
+
+          document.getElementById("modalAlertOkBtn").onclick = () => {
+            document.getElementById("customModal").classList.add("hidden");
+            resolve();
+          };
+        });
+      }

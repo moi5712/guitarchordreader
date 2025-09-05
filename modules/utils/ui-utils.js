@@ -1,9 +1,8 @@
 // 顯示警告
-export function showAlert(message, title = "通知") {
+export function showAlert(message) {
     const modal = document.getElementById("customModal");
     if (!modal) return Promise.resolve(true);
     
-    document.getElementById("modalTitle").textContent = title;
     document.getElementById("modalMessage").textContent = message;
     document.getElementById("modalConfirmBtn").classList.add("hidden");
     document.getElementById("modalCancelBtn").classList.add("hidden");

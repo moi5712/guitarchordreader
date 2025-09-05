@@ -4,19 +4,41 @@ import { togglePlay, collectTargets } from './playback.js';
 import { setCurrentSettings, playing } from './state.js';
 
 function init() {
-  document.getElementById("editBtn").onclick = function () {
+  // Cache DOM elements
+  const editBtn = document.getElementById("editBtn");
+  const playBtn = document.getElementById("playBtn");
+  const homeBtn = document.getElementById("homeBtn");
+  const importBtn = document.getElementById("importBtn");
+  const importFile = document.getElementById("importFile");
+  const fontPxInput = document.getElementById("fontPx");
+  const lineGapInput = document.getElementById("lineGap");
+  const transposeInput = document.getElementById("transpose");
+  const showFingeringCheckbox = document.getElementById("showFingering");
+  const countdownEnabledCheckbox = document.getElementById("countdownEnabled");
+  const speedInput = document.getElementById("speed");
+  const mobileFontPxInput = document.getElementById("mobileFontPx");
+  const mobileLineGapInput = document.getElementById("mobileLineGap");
+  const mobileTransposeInput = document.getElementById("mobileTranspose");
+  const mobileShowFingeringCheckbox = document.getElementById("mobileShowFingering");
+  const mobileCountdownEnabledCheckbox = document.getElementById("mobileCountdownEnabled");
+  const mobileSettingsBtn = document.getElementById("mobileSettingsBtn");
+  const mobileSettingsConfirmBtn = document.getElementById("mobileSettingsConfirm");
+  const mobileSettingsCancelBtn = document.getElementById("mobileSettingsCancel");
+  const mobileSettingsModal = document.getElementById("mobileSettingsModal");
+
+  editBtn.onclick = function () {
     window.location.href = "editor.html";
   };
 
-  document.getElementById("playBtn").onclick = togglePlay;
-  document.getElementById("homeBtn").onclick = function () {
+  playBtn.onclick = togglePlay;
+  homeBtn.onclick = function () {
     window.location.href = "library.html";
   };
-  document.getElementById("importBtn").onclick = function () {
-    document.getElementById("importFile").click();
+  importBtn.onclick = function () {
+    importFile.click();
   };
 
-  document.getElementById("importFile").addEventListener("change", function (e) {
+  importFile.addEventListener("change", function (e) {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -37,43 +59,42 @@ function init() {
     }, 100);
   };
 
-  ["fontPx", "lineGap", "transpose"].forEach((id) => {
-    document.getElementById(id).addEventListener("input", () => {
+  [fontPxInput, lineGapInput, transposeInput].forEach((input) => {
+    input.addEventListener("input", () => {
       debouncedRender();
       saveSettings();
     });
   });
 
-  document.getElementById("showFingering").addEventListener("change", () => {
+  showFingeringCheckbox.addEventListener("change", () => {
     render();
     collectTargets();
     saveSettings();
   });
 
-  const countdownEnabledCheckbox = document.getElementById("countdownEnabled");
   countdownEnabledCheckbox.addEventListener("change", () => {
-    if (!playing) document.getElementById("playBtn").disabled = false;
+    if (!playing) playBtn.disabled = false;
     saveSettings();
   });
 
-  document.getElementById("speed").addEventListener("input", saveSettings);
+  speedInput.addEventListener("input", saveSettings);
 
   const savedSettings = localStorage.getItem("readerSettings");
   if (savedSettings) {
     try {
       const settings = JSON.parse(savedSettings);
-      document.getElementById("fontPx").value = settings.fontSize || 18;
-      document.getElementById("lineGap").value = settings.lineGap || 14;
-      document.getElementById("transpose").value = settings.transpose || 0;
-      document.getElementById("showFingering").checked = settings.showFingering || false;
-      document.getElementById("countdownEnabled").checked = settings.countdownEnabled || false;
-      document.getElementById("speed").value = settings.speed || 30;
+      fontPxInput.value = settings.fontSize || 18;
+      lineGapInput.value = settings.lineGap || 14;
+      transposeInput.value = settings.transpose || 0;
+      showFingeringCheckbox.checked = settings.showFingering || false;
+      countdownEnabledCheckbox.checked = settings.countdownEnabled || false;
+      speedInput.value = settings.speed || 30;
 
-      document.getElementById("mobileFontPx").value = settings.fontSize || 18;
-      document.getElementById("mobileLineGap").value = settings.lineGap || 14;
-      document.getElementById("mobileTranspose").value = settings.transpose || 0;
-      document.getElementById("mobileShowFingering").checked = settings.showFingering || false;
-      document.getElementById("mobileCountdownEnabled").checked = settings.countdownEnabled || false;
+      mobileFontPxInput.value = settings.fontSize || 18;
+      mobileLineGapInput.value = settings.lineGap || 14;
+      mobileTransposeInput.value = settings.transpose || 0;
+      mobileShowFingeringCheckbox.checked = settings.showFingering || false;
+      mobileCountdownEnabledCheckbox.checked = settings.countdownEnabled || false;
 
       setCurrentSettings({ ...currentSettings, ...settings });
     } catch (e) {
@@ -81,29 +102,29 @@ function init() {
     }
   }
 
-  document.getElementById("mobileSettingsBtn").onclick = function () {
-    document.getElementById("mobileFontPx").value = document.getElementById("fontPx").value;
-    document.getElementById("mobileLineGap").value = document.getElementById("lineGap").value;
-    document.getElementById("mobileTranspose").value = document.getElementById("transpose").value;
-    document.getElementById("mobileShowFingering").checked = document.getElementById("showFingering").checked;
-    document.getElementById("mobileCountdownEnabled").checked = document.getElementById("countdownEnabled").checked;
-    document.getElementById("mobileSettingsModal").classList.add("visible");
+  mobileSettingsBtn.onclick = function () {
+    mobileFontPxInput.value = fontPxInput.value;
+    mobileLineGapInput.value = lineGapInput.value;
+    mobileTransposeInput.value = transposeInput.value;
+    mobileShowFingeringCheckbox.checked = showFingeringCheckbox.checked;
+    mobileCountdownEnabledCheckbox.checked = countdownEnabledCheckbox.checked;
+    mobileSettingsModal.classList.add("visible");
   };
 
-  document.getElementById("mobileSettingsConfirm").onclick = function () {
-    document.getElementById("fontPx").value = document.getElementById("mobileFontPx").value;
-    document.getElementById("lineGap").value = document.getElementById("mobileLineGap").value;
-    document.getElementById("transpose").value = document.getElementById("mobileTranspose").value;
-    document.getElementById("showFingering").checked = document.getElementById("mobileShowFingering").checked;
-    document.getElementById("countdownEnabled").checked = document.getElementById("mobileCountdownEnabled").checked;
+  mobileSettingsConfirmBtn.onclick = function () {
+    fontPxInput.value = mobileFontPxInput.value;
+    lineGapInput.value = mobileLineGapInput.value;
+    transposeInput.value = mobileTransposeInput.value;
+    showFingeringCheckbox.checked = mobileShowFingeringCheckbox.checked;
+    countdownEnabledCheckbox.checked = mobileCountdownEnabledCheckbox.checked;
     render();
     collectTargets();
     saveSettings();
-    document.getElementById("mobileSettingsModal").classList.remove("visible");
+    mobileSettingsModal.classList.remove("visible");
   };
 
-  document.getElementById("mobileSettingsCancel").onclick = () => document.getElementById("mobileSettingsModal").classList.remove("visible");
-  document.getElementById("mobileSettingsModal").onclick = function (e) {
+  mobileSettingsCancelBtn.onclick = () => mobileSettingsModal.classList.remove("visible");
+  mobileSettingsModal.onclick = function (e) {
     if (e.target === this) this.classList.remove("visible");
   };
 

@@ -5,7 +5,6 @@ import { filterSheets } from './data.js';
 const sheetsContainer = document.getElementById('sheetsContainer');
 const emptyState = document.getElementById('emptyState');
 const loadingState = document.getElementById('loadingState');
-const localFileState = document.getElementById('localFileState');
 const statusBar = document.getElementById('statusBar');
 const sheetCount = document.getElementById('sheetCount');
 const searchInput = document.getElementById('searchInput');
@@ -114,21 +113,12 @@ export function updateStatus() {
 export function showEmptyState() {
     sheetsContainer.style.display = 'none';
     emptyState.style.display = 'block';
-    localFileState.style.display = 'none';
 }
 
 // 隱藏空狀態
 function hideEmptyState() {
     sheetsContainer.style.display = 'grid';
     emptyState.style.display = 'none';
-    localFileState.style.display = 'none';
-}
-
-// 顯示本地檔案狀態
-function showLocalFileState() {
-    sheetsContainer.style.display = 'none';
-    emptyState.style.display = 'none';
-    localFileState.style.display = 'block';
 }
 
 // 根據歌曲數量排序並渲染標籤按鈕

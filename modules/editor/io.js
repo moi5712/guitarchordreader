@@ -103,8 +103,8 @@ export async function saveToSheetsFolder() {
         const data = await response.json();
         existingFiles = data.sheets.map(f => f.filename);
     } catch (error) {
-        console.error("獲取檔案列表失敗:", error);
-        return showAlert("獲取檔案列表失敗，無法檢查檔名衝突。");
+        console.error("獲取檔案列表失敗，無法檢查檔名衝突。:", error);
+        return showAlert("儲存失敗。");
     }
 
     const defaultValue = currentFilename || songTitle;

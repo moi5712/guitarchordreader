@@ -130,20 +130,17 @@ export function render() {
 
   const hasContent = song.sections.length > 0 && song.sections.some((sec) => sec.lines.length > 0);
 
-  if (hasContent) {
-    score.classList.add("has-content");
-  } else {
-    score.classList.remove("has-content");
-  }
+  score.classList.toggle("has-content", hasContent);
 
   const fontSize = Math.max(10, Math.min(30, newSettings.fontSize));
   score.style.fontSize = fontSize + "px";
   const gap = Math.max(0, Math.min(100, newSettings.lineGap));
 
+  const headerEl = document.querySelector(".card > .meta, .card > header.meta, .card > header");
+  const cardEl = document.querySelector(".card");
+
   if (!hasContent) {
-    const headerEl = document.querySelector(".card > .meta, .card > header.meta, .card > header");
     if (headerEl) headerEl.style.display = "none";
-    const cardEl = document.querySelector(".card");
     if (cardEl) cardEl.style.padding = "0";
 
     document.getElementById("title").textContent = "";
@@ -175,7 +172,11 @@ export function render() {
       const file = e.dataTransfer.files[0];
       if (file && (file.name.endsWith(".txt") || file.name.endsWith(".gtab"))) {
         const reader = new FileReader();
-        reader.onload = (e) => importScore(e.target.result);
+        reader.onload = (e) => {
+          importScore(e.target.result);
+          render();
+          collectTargets();
+        };
         reader.readAsText(file, "utf-8");
       } else {
         alert("請選擇 .txt 或 .gtab 格式的檔案");
@@ -184,12 +185,12 @@ export function render() {
 
     score.appendChild(tip);
   } else {
-    const headerEl = document.querySelector(".card > .meta, .card > header.meta, .card > header");
     if (headerEl) headerEl.style.display = "";
-    const cardEl = document.querySelector(".card");
     if (cardEl) cardEl.style.padding = "";
 
     const hasExplicitSections = /^\[(verse|chorus|intro|bridge|outro|solo|pre-chorus|interlude|tag|coda)\]/im.test(song.originalContent || '');
+
+    const fragment = document.createDocumentFragment();
 
     song.sections.forEach((sec) => {
       if (hasExplicitSections) {
@@ -197,7 +198,7 @@ export function render() {
         h.className = "sec";
         h.style.borderLeftColor = sec.color;
         h.textContent = sec.label;
-        score.appendChild(h);
+        fragment.appendChild(h);
       }
 
       sec.lines.forEach((ln, i) => {
@@ -219,8 +220,9 @@ export function render() {
         });
 
         wrap.appendChild(lineContentSpan);
-        score.appendChild(wrap);
+        fragment.appendChild(wrap);
       });
     });
+    score.appendChild(fragment);
   }
 }

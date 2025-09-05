@@ -1,6 +1,6 @@
 import { CHORD_MAP, CHORD_NAMES } from '../config/chord-config.js';
 import { SCORE_CONFIG } from '../config/score-config.js';
-import { chordFingerings as defaultChordFingerings } from '../../chord-database.js';
+import { chordFingerings as defaultChordFingerings } from '../chord-database.js';
 
 // 和弦變調
 export function transposeChord(chord, semitones) {

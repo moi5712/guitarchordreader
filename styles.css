@@ -23,7 +23,7 @@
   --floating-bg: #ffffff3d;
   /*字體*/
   --mono: Consolas, "Liberation Mono", monospace;
-  --sans: Consolas, "Noto Sans TC", "Inter", "PingFang TC", system-ui,
+  --sans: "roboto", "Noto Sans TC", "noto sans JP", "PingFang TC", system-ui,
     -apple-system, sans-serif;
   --lyrics: Consolas, "Zen Maru", "Noto Sans TC", "Inter", "PingFang TC",
     system-ui, -apple-system, sans-serif;
@@ -268,13 +268,14 @@ body {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 12px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow);
 }
 
 .meta {
   padding: 24px 24px 16px 24px;
   background: var(--card);
   border-radius: 12px 12px 0 0;
+  border-bottom: 1px solid var(--line);
 }
 
 .title {
@@ -334,8 +335,13 @@ body {
 /* 和弦名稱 */
 .chord-name {
   font-family: var(--mono);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--brand);
+  background: var(--hover);
+  border-radius: 5px;
+  padding: 5px;
+  font-size: 18px;
+  margin-right: 5px;
 }
 
 /* 段落標題 */
@@ -407,7 +413,7 @@ body {
 }
 
 .score.has-content {
-  padding: 0px 24px 24px 24px;
+  padding: 24px;
 }
 
 .floating {
@@ -510,7 +516,10 @@ body {
   resize: none;
   overflow-y: auto;
 }
-
+#urlTextarea {
+  height: 30vh;
+  min-height: 30vh;
+}
 .left-sidebar {
   display: flex;
   flex-direction: column;
@@ -527,12 +536,13 @@ body {
 }
 
 .panel-header {
-  padding: 16px 20px;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--line);
-  font-weight: 600;
-  font-size: 16px;
-  background: var(--hover);
+  font-weight: 400;
+  font-size: 15px;
+  /* background: var(--hover); */
   border-radius: 12px 12px 0 0;
+  color: var(--muted);
 }
 
 .panel-content {
@@ -631,7 +641,7 @@ body {
   background: var(--card);
   border-radius: 6px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   text-align: center;
   transition: all 0.15s ease;
@@ -721,14 +731,15 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 2000;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
+  backdrop-filter: blur(0px);
 }
 
 .modal-overlay.visible {
@@ -820,7 +831,6 @@ body {
 .library-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px 20px 20px;
 }
 
 .library-header {
@@ -866,7 +876,6 @@ body {
   flex-shrink: 0;
 }
 
-
 .tag-buttons {
   display: flex;
   gap: 8px;
@@ -874,7 +883,6 @@ body {
   padding: 4px 0;
   min-height: 36px; /* 確保有最小高度 */
 }
-
 
 .sheets-grid {
   display: grid;
@@ -887,23 +895,26 @@ body {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 20px;
   text-align: center;
   transition: all 0.2s ease;
   box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
 }
-
+.sheet-card-content {
+  padding: 20px;
+}
 .sheet-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  border-top: 1px solid var(--line);
 }
 
 .sheet-btn {
   flex: 1;
-  padding: 8px 12px;
+  padding: 10px;
   border: none;
-  border-radius: 6px;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
@@ -1038,8 +1049,6 @@ body {
   border-color: #3b82f6;
 }
 
-
-
 /* 樂譜卡片中的標籤顯示 */
 .sheet-tags {
   display: flex;
@@ -1047,7 +1056,7 @@ body {
   margin-top: 8px;
   flex-wrap: wrap;
   justify-content: center;
-  cursor: none;
+  user-select: none;
 }
 
 .sheet-tag {
@@ -1060,58 +1069,69 @@ body {
 
 /* ==================== 側邊欄佈局 ==================== */
 .library-container {
-    display: flex;
-    align-items: flex-start;
-    gap: 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
 }
 
 .sidebar {
-    width: 240px;
-    flex-shrink: 0;
+  width: 240px;
+  flex-shrink: 0;
+  padding-bottom: 24px;
+  position: sticky;
+  top: 80px;
+  overflow: scroll;
+  height: calc(100vh - 80px);
+  scrollbar-width: none; /* Firefox */
+}
+
+html::-webkit-scrollbar {
+  display: none; /* Chrome / Safari */
 }
 
 .main-content {
-    flex-grow: 1;
-    min-width: 0; /* Prevents flexbox overflow issues */
+  flex-grow: 1;
+  min-width: 0; /* Prevents flexbox overflow issues */
+  padding-bottom: 24px;
 }
 
 .sidebar-title {
-    font-size: 18px;
-    font-weight: 600;
-    margin-top: 0;
-    margin-bottom: 16px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--line);
-    position: sticky;
-    top: 80px;
-    background: var(--bg);
-    z-index: 10;
-    padding: 8px 0;
+  font-size: 16px;
+  font-weight: 500;
+  margin-top: 0;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0px;
+  background: var(--bg);
+  z-index: 10;
+  padding: 8px 0;
 }
 
 .sidebar .tag-filter-section {
-    flex-direction: column;
-    align-items: flex-start; /* 改為 flex-start，按鈕不會被拉伸 */
-    gap: 16px;
+  flex-direction: column;
+  align-items: flex-start; /* 改為 flex-start，按鈕不會被拉伸 */
+  gap: 16px;
 }
 
 .sidebar .tag-buttons {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 8px;
-    overflow-y: auto;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  overflow-y: auto;
 }
 
 .sidebar .tag-btn {
-    /* 允許按鈕內的文字換行 */
-    white-space: normal;
-    word-break: break-word;
-    text-align: left;
-    /* 強制按鈕寬度不超過容器 */
-    max-width: 100%;
-    /* 讓高度自適應內容 */
-    height: auto;
+  /* 允許按鈕內的文字換行 */
+  white-space: normal;
+  word-break: break-word;
+  text-align: left;
+  /* 強制按鈕寬度不超過容器 */
+  max-width: 100%;
+  /* 讓高度自適應內容 */
+  height: auto;
 }
 /* ==================== 響應式設計 ==================== */
 @media (max-width: 1024px) {
@@ -1148,8 +1168,8 @@ body {
 
   .left-sidebar {
     position: static;
+    top: 72px;
   }
-
   .section-grid {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -1163,8 +1183,8 @@ body {
     gap: 16px !important;
   }
 
-  .score.has-content{
-      padding: 0px 12px 12px 12px;
+  .score.has-content {
+    padding: 12px;
   }
 
   .library-container {
@@ -1178,37 +1198,37 @@ body {
   }
 }
 @media (max-width: 685px) {
-    /* 在手機版顯示設定按鈕 */
+  /* 在手機版顯示設定按鈕 */
   .mobile-only {
     display: flex !important;
   }
-  
+
   /* 手機板設定選項 */
-  .topbar .tiny:not(.mobile-only),.topbar .input:not(.mobile-only) {
+  .topbar .tiny:not(.mobile-only),
+  .topbar .input:not(.mobile-only) {
     display: none;
   }
-  .modal-body .form-group{
+  .modal-body .form-group {
     display: flex;
     align-items: center;
     gap: 8px;
   }
-    .settings-modal {
+  .settings-modal {
     max-width: 70%;
     margin: 20px;
     padding: 36px;
   }
-  
+
   .modal-body {
     margin-bottom: 10px;
   }
-  
-  .modal-footer {
 
+  .modal-footer {
     display: flex;
     gap: 12px;
     justify-content: flex-end;
   }
-  
+
   .modal-footer .btn {
     width: 100%;
   }
@@ -1226,9 +1246,8 @@ body {
   }
   .wrap {
     padding: 71px 0px 0px 0px;
-    
   }
-  .card{
+  .card {
     border-radius: 0px;
     border: 0px;
     box-shadow: none;
@@ -1240,10 +1259,10 @@ body {
     backdrop-filter: blur(3px);
     -webkit-backdrop-filter: blur(3px);
   }
-  .sidebar{
+  .sidebar {
     display: none;
   }
-  .sheet-tags{
+  .sheet-tags {
     display: none;
   }
 }
@@ -1284,4 +1303,3 @@ body {
     gap: 0px;
   }
 }
-

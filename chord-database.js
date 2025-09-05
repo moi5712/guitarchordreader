@@ -2,7 +2,7 @@
 // 格式: [第6弦, 第5弦, 第4弦, 第3弦, 第2弦, 第1弦]
 // 數值含義: 0=空弦,-1=不彈, 1-12=品格位置
 
-const chordFingerings = {
+export const chordFingerings = {
   // ==================== 基本大調和弦 ====================
   'C': [-1, 3, 2, 0, 1, 0],
   'D': [-1,-1, 0, 2, 3, 2],
@@ -317,13 +317,3 @@ const chordFingerings = {
   // ==================== 無和弦 ====================
   'N.C.': [-1,-1,-1,-1,-1,-1],
 };
-
-// 如果在Node.js環境中，導出模組
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { chordFingerings };
-}
-
-// 如果在瀏覽器環境中，設為全域變數
-if (typeof window !== 'undefined') {
-  window.chordFingerings = chordFingerings;
-}

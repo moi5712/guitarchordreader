@@ -1,75 +1,72 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-<head>
+  <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>首頁</title>
     <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
+  </head>
+  <body>
     <header class="library-header">
-        <div class="library-header-content">
-            <div class="library-header-top">
-                <h1 class="library-title">首頁</h1>
-                <div class="library-actions">
-                    <input
-                        id="searchInput"
-                        class="input"
-                        type="text"
-                        placeholder="搜尋樂譜..."
-                        style="width: 250px;"
-                    />
-                </div>
-            </div>
+      <div class="library-header-content">
+        <div class="library-header-top">
+          <h1 class="library-title">首頁</h1>
+          <div class="library-actions">
+            <input
+              id="searchInput"
+              class="input"
+              type="text"
+              placeholder="搜尋樂譜..."
+              style="width: 250px"
+            />
+          </div>
         </div>
+      </div>
     </header>
     <div class="library-container">
-        <aside class="sidebar">
-            <h2 class="sidebar-title">標籤</h2>
-            <div class="tag-buttons" id="normalTagButtons">
-                <!-- 動態生成的標籤按鈕 -->
-            </div>
-            <h2 class="sidebar-title">作者</h2>
-            <div class="tag-buttons" id="artistTagButtons">
-                <!-- 動態生成的標籤按鈕 -->
-            </div>
-        </aside>
-        <main class="main-content">
+      <aside class="sidebar">
+        <h2 class="sidebar-title">標籤</h2>
+        <div class="tag-buttons" id="normalTagButtons">
+          <!-- 動態生成的標籤按鈕 -->
+        </div>
+        <h2 class="sidebar-title">演出者</h2>
+        <div class="tag-buttons" id="artistTagButtons">
+          <!-- 動態生成的標籤按鈕 -->
+        </div>
+      </aside>
+      <main class="main-content">
+        <div id="statusBar" class="status-bar">
+          <span id="sheetCount">0 首樂譜</span>
+        </div>
 
+        <div id="sheetsContainer" class="sheets-grid">
+          <!-- 樂譜卡片將在這裡動態生成 -->
+        </div>
 
-            <div id="statusBar" class="status-bar">
-                <span id="sheetCount">0 首樂譜</span>
-                <span id="statusText">準備載入樂譜...</span>
-            </div>
+        <div id="emptyState" class="empty-state" style="display: none">
+          <div class="empty-icon">空</div>
+          <div class="empty-title">沒有樂譜</div>
+          <div class="empty-message">請將樂譜檔案放入 sheets 資料夾</div>
+        </div>
 
-            <div id="sheetsContainer" class="sheets-grid">
-                <!-- 樂譜卡片將在這裡動態生成 -->
-            </div>
+        <div id="loadingState" class="empty-state" style="display: none">
+          <div class="empty-title">載入中</div>
+        </div>
 
-            <div id="emptyState" class="empty-state" style="display: none;">
-                <div class="empty-icon">空</div>
-                <div class="empty-title">沒有樂譜</div>
-                <div class="empty-message">請將樂譜檔案放入 sheets 資料夾</div>
-            </div>
-
-            <div id="loadingState" class="empty-state" style="display: none;">
-                <div class="empty-title">載入中</div>
-            </div>
-
-            <div id="localFileState" class="empty-state" style="display: none;">
-                <div class="empty-icon">空</div>
-                <div class="empty-title">本地檔案模式</div>
-                <div class="empty-message">
-                    由於瀏覽器安全限制，無法自動同步本地檔案。<br>
-                    請啟動服務器：<code>node server.js</code>
-                </div>
-            </div>
-        </main>
+        <div id="localFileState" class="empty-state" style="display: none">
+          <div class="empty-icon">空</div>
+          <div class="empty-title">本地檔案模式</div>
+          <div class="empty-message">
+            由於瀏覽器安全限制，無法自動同步本地檔案。<br />
+            請啟動服務器：<code>node server.js</code>
+          </div>
+        </div>
+      </main>
     </div>
 
-    <script src="functions.js"></script>
+    <!--<script src="functions.js"></script> 
     <script src="theme.js"></script>
-    <script src="library.js"></script>
-
-</body>
+    <script src="library.js"></script> -->
+    <script type="module" src="./modules/library/main.js"></script>
+  </body>
 </html>

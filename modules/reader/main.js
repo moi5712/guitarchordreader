@@ -1,7 +1,7 @@
 import { importScore, saveSettings, getCurrentSheetContent } from './data.js';
 import { render } from './ui.js';
 import { togglePlay, collectTargets } from './playback.js';
-import { setCurrentSettings, playing } from './state.js';
+import { setCurrentSettings, playing, song } from './state.js';
 
 function init() {
   // Cache DOM elements
@@ -27,6 +27,21 @@ function init() {
   const mobileSettingsModal = document.getElementById("mobileSettingsModal");
 
   editBtn.onclick = function () {
+    // Save current sheet content and filename to sessionStorage before navigating
+    const currentContent = getCurrentSheetContent(); // Get content from reader's state
+    const currentFilename = song.filename; // Get filename from reader's state (assuming 'song' is available)
+
+    if (currentContent) {
+      sessionStorage.setItem('sheetToEdit_content', currentContent);
+      if (currentFilename) {
+        sessionStorage.setItem('sheetToEdit_filename', currentFilename);
+      } else {
+        sessionStorage.removeItem('sheetToEdit_filename'); // Clear if no filename
+      }
+    } else {
+      sessionStorage.removeItem('sheetToEdit_content');
+      sessionStorage.removeItem('sheetToEdit_filename');
+    }
     window.location.href = "editor.html";
   };
 
@@ -136,21 +151,37 @@ window.addEventListener('load', () => {
     init();
 
     let contentToLoad = null;
+    let filenameToLoad = null; // New variable for filename
     const urlParams = new URLSearchParams(window.location.search);
     const contentParam = urlParams.get("content");
 
     // --- Robust Loading Logic ---
     if (contentParam) {
         contentToLoad = decodeURIComponent(contentParam);
+        // If content comes from URL, filename is not directly available,
+        // but it's usually a temporary view. We can try to extract from URL if needed,
+        // or leave it null for now. For now, we'll leave it null.
     } else {
-        contentToLoad = getCurrentSheetContent();
+        // Try to load from sessionStorage (used when coming from library.html)
+        contentToLoad = sessionStorage.getItem('sheetToEdit_content');
+        filenameToLoad = sessionStorage.getItem('sheetToEdit_filename');
+
+        // If not from sessionStorage, fallback to auto-saved draft
+        if (!contentToLoad) {
+            contentToLoad = getCurrentSheetContent();
+            // Filename won't be available here either, as it's a draft
+        }
     }
 
     if (contentToLoad) {
-        importScore(contentToLoad);
+        importScore(contentToLoad, filenameToLoad); // Pass filenameToLoad
         render();
         collectTargets();
     }
+
+    // Clean up sessionStorage items immediately after reading
+    sessionStorage.removeItem('sheetToEdit_content');
+    sessionStorage.removeItem('sheetToEdit_filename');
 
     const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
     window.history.replaceState({}, document.title, cleanUrl);

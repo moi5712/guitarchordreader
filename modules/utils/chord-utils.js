@@ -1,11 +1,28 @@
-import { CHORD_MAP, CHORD_NAMES } from '../config/chord-config.js';
+import { CHORD_MAP, CHORD_NAMES_SHARP, CHORD_NAMES_FLAT } from '../config/chord-config.js';
 import { SCORE_CONFIG } from '../config/score-config.js';
 import { chordFingerings as defaultChordFingerings } from '../chord-database.js';
+
+// Helper to get enharmonic equivalent based on original root's sharp/flat preference
+function getEnharmonicEquivalent(index, originalRoot) {
+    const isOriginalSharp = originalRoot.includes('#');
+    const isOriginalFlat = originalRoot.includes('♭'); // Check for Unicode flat symbol
+
+    // If original was sharp, prefer sharp. If original was flat, prefer flat.
+    // Otherwise, default to sharp (CHORD_NAMES_SHARP is the default CHORD_NAMES)
+    if (isOriginalSharp) {
+        return CHORD_NAMES_SHARP[index];
+    } else if (isOriginalFlat) {
+        return CHORD_NAMES_FLAT[index];
+    } else {
+        // For natural notes, or if no clear preference, use the default (sharp)
+        return CHORD_NAMES_SHARP[index];
+    }
+}
 
 // 和弦變調
 export function transposeChord(chord, semitones) {
     if (!chord) return chord;
-    const m = chord.match(/^([A-G][#b]?)(.*)$/);
+    const m = chord.match(/^([A-G][#b♭]?)(.*)$/);
     if (!m) return chord;
   
     const root = m[1];
@@ -13,15 +30,17 @@ export function transposeChord(chord, semitones) {
   
     const rootIndex = CHORD_MAP[root];
     if (rootIndex === undefined) return chord;
-    const newRoot = CHORD_NAMES[(rootIndex + semitones + 12) % 12];
+    
+    // Use helper to get the new root, preserving sharp/flat preference
+    const newRoot = getEnharmonicEquivalent((rootIndex + semitones + 12) % 12, root);
   
     // 若存在轉位（slash chord），同時變調斜線後的低音音名
     const slashPos = rest.indexOf('/');
     if (slashPos !== -1) {
-      const pre = rest.slice(0, slashPos); // 後綴（m, dim, aug, sus, maj7...）維持不變
+      const pre = rest.slice(0, slashPos);
       const bassPart = rest.slice(slashPos + 1);
   
-      const bm = bassPart.match(/^([A-G][#b]?)(.*)$/);
+      const bm = bassPart.match(/^([A-G][#b♭]?)(.*)$/);
       if (bm) {
         const bassRoot = bm[1];
         const bassRest = bm[2] || '';
@@ -29,7 +48,8 @@ export function transposeChord(chord, semitones) {
         if (bassIndex === undefined) {
           return newRoot + rest; // 低音不是音名則不處理
         }
-        const newBass = CHORD_NAMES[(bassIndex + semitones + 12) % 12];
+        // Use helper for the new bass, preserving sharp/flat preference
+        const newBass = getEnharmonicEquivalent((bassIndex + semitones + 12) % 12, bassRoot);
         return newRoot + pre + '/' + newBass + bassRest;
       }
     }

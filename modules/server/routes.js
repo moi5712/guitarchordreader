@@ -11,7 +11,8 @@ const mimeTypes = {
     '.css': 'text/css',
     '.json': 'application/json',
     '.txt': 'text/plain',
-    '.gtab': 'text/plain'
+    '.gtab': 'text/plain',
+    '.svg': 'image/svg+xml'
 };
 
 function handleRequest(req, res) {

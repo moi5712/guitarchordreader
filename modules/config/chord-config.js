@@ -9,8 +9,10 @@ export const COMMON_CHORDS = [
   ];
 
 export const CHORD_MAP = {
-    'C': 0, 'C#': 1, 'Db': 1, 'D': 2, 'D#': 3, 'Eb': 3, 'E': 4, 'F': 5,
-    'F#': 6, 'Gb': 6, 'G': 7, 'G#': 8, 'Ab': 8, 'A': 9, 'A#': 10, 'Bb': 10, 'B': 11
+    'C': 0, 'C#': 1, 'D♭': 1, 'D': 2, 'D#': 3, 'E♭': 3, 'E': 4, 'F': 5,
+    'F#': 6, 'G♭': 6, 'G': 7, 'G#': 8, 'A♭': 8, 'A': 9, 'A#': 10, 'B♭': 10, 'B': 11
   };
   
-export const CHORD_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+export const CHORD_NAMES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+export const CHORD_NAMES_FLAT = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
+export const CHORD_NAMES = CHORD_NAMES_SHARP; // Default to sharp

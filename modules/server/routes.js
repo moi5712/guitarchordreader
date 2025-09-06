@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 const { scanSheetsFolder } = require('./sheet-service.js');
+const { handleImportFromUrl } = require('../importer/url-importer.js'); // Added this line
 
 const mimeTypes = {
     '.html': 'text/html',
@@ -74,42 +75,7 @@ function handleRequest(req, res) {
 
     // API 端點：從URL導入
     if (pathname === '/api/import-from-url' && req.method === 'POST') {
-        let body = '';
-        req.on('data', chunk => {
-            body += chunk.toString();
-        });
-        req.on('end', () => {
-            try {
-                const { urls } = JSON.parse(body);
-                const urlsPath = path.join(__dirname, '..', '..', 'download_env', 'urls.txt');
-                fs.writeFileSync(urlsPath, urls, 'utf8');
-
-                const downloadEnvDir = path.join(__dirname, '..', '..', 'download_env');
-                const batchFile = 'run_all.bat';
-
-                exec(batchFile, { cwd: downloadEnvDir, env: { ...process.env, PYTHONIOENCODING: 'utf-8' } }, (error, stdout, stderr) => {
-                    if (error) {
-                        console.error(`執行 run_all.bat 失敗: ${error}`);
-                        return;
-                    }
-                    console.log(`run_all.bat stdout: ${stdout}`);
-                    console.error(`run_all.bat stderr: ${stderr}`);
-                });
-
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({
-                    success: true,
-                    message: '導入程序已在背景開始'
-                }));
-            } catch (error) {
-                console.error('導入失敗:', error);
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({
-                    success: false,
-                    error: error.message
-                }));
-            }
-        });
+        handleImportFromUrl(req, res);
         return;
     }
 

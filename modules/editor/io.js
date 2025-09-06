@@ -147,9 +147,17 @@ export async function saveToSheetsFolder() {
 
 
 export async function importFromUrl() {
-    const urls = document.getElementById("urlTextarea").value.trim();
-    if (!urls) {
+    const urlText = document.getElementById("urlTextarea").value.trim();
+    if (!urlText) {
         showAlert("請貼上網址");
+        return;
+    }
+
+    // Split by newline and filter out empty lines
+    const urls = urlText.split('\n').map(url => url.trim()).filter(url => url);
+
+    if (urls.length === 0) {
+        showAlert("請貼上有效的網址");
         return;
     }
 
@@ -159,14 +167,15 @@ export async function importFromUrl() {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ urls }),
+            body: JSON.stringify({ urls: urls }), // Send an array of URLs
         });
 
         const result = await response.json();
 
         if (result.success) {
             document.getElementById("importUrlModal").classList.remove("visible");
-            showAlert("導入已開始，請稍候。完成後請重新整理首頁。","導入已開始");
+            // Adjust the message to reflect multiple URLs
+            showAlert(`已成功轉換${result.processed} 個網址。請重新整理首頁。`, "導入已開始");
         } else {
             showAlert(`導入失敗: ${result.error}`, "錯誤");
         }

@@ -1,6 +1,7 @@
 #title: Perfect
 #artist:  Ed Sheeran
-#key: Ab
+#tags: 英文,流行,抒情
+#key: A♭
 #bpm: 65
 #capo: 1
 #time: 6/8

@@ -1,5 +1,6 @@
 #title: 風になる
 #artist: つじあやの
+#tags:日文,民謠,簡單
 #key: C
 #bpm: 135
 #time: 4/4

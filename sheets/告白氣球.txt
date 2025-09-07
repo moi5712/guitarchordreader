@@ -1,5 +1,6 @@
 #title: 告白氣球
 #artist: 周杰倫
+#tags: 中文,流行,簡單
 #key: G
 #bpm: 90
 #capo: 4

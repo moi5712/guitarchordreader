@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>首頁</title>
     <link rel="stylesheet" href="styles.css" />
-      <link rel="icon" href="favicon.svg" type="image/svg+xml">
-</head>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  </head>
   <body>
     <header class="library-header">
       <div class="library-header-content">
@@ -17,7 +17,7 @@
               id="searchInput"
               class="input"
               type="text"
-              placeholder="搜尋樂譜..."
+              placeholder="搜尋樂譜或作者..."
               style="width: 250px"
             />
           </div>
@@ -38,6 +38,15 @@
       <main class="main-content">
         <div id="statusBar" class="status-bar">
           <span id="sheetCount">0 首樂譜</span>
+          <div>
+            <label>排序方式</label>
+            <select id="sortBy" class="select" style="padding: 4px 8px; margin: 0 0 0 4px;">
+              <option value="A-Z">A-Z</option>
+              <option value="Z-A">Z-A</option>
+              <option value="latest">最近</option>
+              <option value="earliest">最早</option>
+            </select>
+          </div>
         </div>
 
         <div id="sheetsContainer" class="sheets-grid">
@@ -53,8 +62,6 @@
         <div id="loadingState" class="empty-state" style="display: none">
           <div class="empty-title">載入中</div>
         </div>
-
-        
       </main>
     </div>
 

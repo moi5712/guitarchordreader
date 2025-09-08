@@ -187,6 +187,28 @@ window.addEventListener('load', () => {
     window.history.replaceState({}, document.title, cleanUrl);
 });
 
+// 當使用者透過瀏覽器返回（可能啟用 BFCache）或頁面重新可見時，
+// 檢查 sessionStorage 是否有較新的內容，必要時重新載入與渲染。
+function reloadIfSessionChanged() {
+    const latest = getCurrentSheetContent();
+    if (latest && latest !== song.originalContent) {
+        importScore(latest);
+        render();
+        collectTargets();
+    }
+}
+
+window.addEventListener('pageshow', (e) => {
+    // 無論是否從 BFCache 還原，都做一次比對
+    reloadIfSessionChanged();
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        reloadIfSessionChanged();
+    }
+});
+
 
 document.addEventListener("dragover", (e) => {
   e.preventDefault();

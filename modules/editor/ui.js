@@ -177,6 +177,12 @@ export function initEditor() {
         }, 300);
     });
 
+    // 在離開編輯器或快速返回時，保證最新內容已寫回 sessionStorage
+    window.addEventListener('beforeunload', () => {
+        const content = document.getElementById("editorTextarea").value;
+        sessionStorage.setItem("currentSheetContent", content);
+    });
+
 
     // 鍵盤快捷鍵
     document.addEventListener("keydown", (e) => {

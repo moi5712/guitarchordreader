@@ -4,6 +4,7 @@ export let isLoading = false;
 export let normalTagCounts = new Map();
 export let artistTagCounts = new Map();
 export let selectedTags = new Set();
+export let sortBy = 'A-Z';
 
 export function setCurrentSheets(sheets) {
     currentSheets = sheets;
@@ -35,4 +36,8 @@ export function deleteSelectedTag(tag) {
 
 export function clearSelectedTags() {
     selectedTags.clear();
+}
+
+export function setSortBy(value) {
+    sortBy = value;
 }

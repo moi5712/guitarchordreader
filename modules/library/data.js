@@ -1,5 +1,5 @@
 import { parseSheetMeta } from '../utils/parser-utils.js';
-import { currentSheets, filteredSheets, normalTagCounts, artistTagCounts, selectedTags, setCurrentSheets, setFilteredSheets, setNormalTagCounts, setArtistTagCounts } from './state.js';
+import { currentSheets, filteredSheets, normalTagCounts, artistTagCounts, selectedTags, sortBy, setCurrentSheets, setFilteredSheets, setNormalTagCounts, setArtistTagCounts } from './state.js';
 
 // GitHub API 掃描樂譜檔案
 async function scanGitHubSheets() {
@@ -170,5 +170,44 @@ export function filterSheets() {
 
         return matchesSearch && matchesTags;
     });
+    // 依照排序方式排序
+    const compareByTitleAsc = (a, b) => (a.title || '').localeCompare(b.title || '');
+    const compareByTitleDesc = (a, b) => (b.title || '').localeCompare(a.title || '');
+    const toTimestamp = (value) => {
+        if (typeof value === 'number') return value;
+        if (typeof value === 'string') {
+            const t = Date.parse(value);
+            return isNaN(t) ? 0 : t;
+        }
+        return 0;
+    };
+    const getLatestTs = (sheet) => {
+        const lm = toTimestamp(sheet.lastModified);
+        const ad = toTimestamp(sheet.addedDate);
+        return Math.max(lm, ad);
+    };
+    const getEarliestTs = (sheet) => {
+        const lm = toTimestamp(sheet.lastModified);
+        const ad = toTimestamp(sheet.addedDate);
+        const vals = [lm, ad].filter(v => v && Number.isFinite(v));
+        return vals.length ? Math.min(...vals) : 0;
+    };
+
+    switch (sortBy) {
+        case 'A-Z':
+            newFilteredSheets.sort(compareByTitleAsc);
+            break;
+        case 'Z-A':
+            newFilteredSheets.sort(compareByTitleDesc);
+            break;
+        case 'latest':
+            newFilteredSheets.sort((a, b) => getLatestTs(b) - getLatestTs(a));
+            break;
+        case 'earliest':
+            newFilteredSheets.sort((a, b) => getEarliestTs(a) - getEarliestTs(b));
+            break;
+        default:
+            newFilteredSheets.sort(compareByTitleAsc);
+    }
     setFilteredSheets(newFilteredSheets);
 }

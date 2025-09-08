@@ -1,4 +1,4 @@
-import { filteredSheets, currentSheets, selectedTags, normalTagCounts, artistTagCounts, addSelectedTag, deleteSelectedTag, clearSelectedTags } from './state.js';
+import { filteredSheets, currentSheets, selectedTags, normalTagCounts, artistTagCounts, addSelectedTag, deleteSelectedTag, clearSelectedTags, setSortBy } from './state.js';
 import { filterSheets } from './data.js';
 
 // DOM 元素
@@ -11,6 +11,7 @@ const searchInput = document.getElementById('searchInput');
 const normalTagButtons = document.getElementById('normalTagButtons');
 const artistTagButtons = document.getElementById('artistTagButtons');
 const clearTagsBtn = document.getElementById('clearTagsBtn');
+const sortBySelect = document.getElementById('sortBy');
 
 // 顯示載入狀態
 export function showLoadingState() {
@@ -192,5 +193,13 @@ export function setupEventListeners() {
     searchInput.addEventListener('input', handleSearch);
     if (clearTagsBtn) {
         clearTagsBtn.addEventListener('click', clearAllTags);
+    }
+    if (sortBySelect) {
+        sortBySelect.addEventListener('change', (e) => {
+            setSortBy(e.target.value);
+            filterSheets();
+            renderSheets();
+            updateStatus();
+        });
     }
 }

@@ -132,7 +132,6 @@ export async function saveToSheetsFolder() {
         });
 
         if (response.ok) {
-            showAlert(`檔案已儲存：${filenameToSave}`);
             setCurrentFilename(filenameToSave);
         } else {
             const errData = await response.json();

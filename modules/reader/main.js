@@ -27,21 +27,10 @@ function init() {
   const mobileSettingsModal = document.getElementById("mobileSettingsModal");
 
   editBtn.onclick = function () {
-    // Save current sheet content and filename to sessionStorage before navigating
-    const currentContent = getCurrentSheetContent(); // Get content from reader's state
-    const currentFilename = song.filename; // Get filename from reader's state (assuming 'song' is available)
-
-    if (currentContent) {
-      sessionStorage.setItem('sheetToEdit_content', currentContent);
-      if (currentFilename) {
-        sessionStorage.setItem('sheetToEdit_filename', currentFilename);
-      } else {
-        sessionStorage.removeItem('sheetToEdit_filename'); // Clear if no filename
-      }
-    } else {
-      sessionStorage.removeItem('sheetToEdit_content');
-      sessionStorage.removeItem('sheetToEdit_filename');
-    }
+    const currentContent = getCurrentSheetContent();
+    const currentFilename = song.filename;
+    sessionStorage.setItem('currentSheetContent', currentContent || "");
+    if (currentFilename) sessionStorage.setItem('currentFilename', currentFilename); else sessionStorage.removeItem('currentFilename');
     window.location.href = "editor.html";
   };
 
@@ -113,7 +102,7 @@ function init() {
 
       setCurrentSettings({ ...currentSettings, ...settings });
     } catch (e) {
-      console.log("無法解析保存的設置");
+      console.log("解析保存設置失敗");
     }
   }
 
@@ -151,27 +140,11 @@ window.addEventListener('load', () => {
     init();
 
     let contentToLoad = null;
-    let filenameToLoad = null; // New variable for filename
-    const urlParams = new URLSearchParams(window.location.search);
-    const contentParam = urlParams.get("content");
+    let filenameToLoad = null;
 
-    // --- Robust Loading Logic ---
-    if (contentParam) {
-        contentToLoad = decodeURIComponent(contentParam);
-        // If content comes from URL, filename is not directly available,
-        // but it's usually a temporary view. We can try to extract from URL if needed,
-        // or leave it null for now. For now, we'll leave it null.
-    } else {
-        // Try to load from sessionStorage (used when coming from library.html)
-        contentToLoad = sessionStorage.getItem('sheetToEdit_content');
-        filenameToLoad = sessionStorage.getItem('sheetToEdit_filename');
-
-        // If not from sessionStorage, fallback to auto-saved draft
-        if (!contentToLoad) {
-            contentToLoad = getCurrentSheetContent();
-            // Filename won't be available here either, as it's a draft
-        }
-    }
+    // 統一改為讀取 current*
+    contentToLoad = sessionStorage.getItem('currentSheetContent');
+    filenameToLoad = sessionStorage.getItem('currentFilename');
 
     if (contentToLoad) {
         importScore(contentToLoad, filenameToLoad); // Pass filenameToLoad
@@ -179,9 +152,7 @@ window.addEventListener('load', () => {
         collectTargets();
     }
 
-    // Clean up sessionStorage items immediately after reading
-    sessionStorage.removeItem('sheetToEdit_content');
-    sessionStorage.removeItem('sheetToEdit_filename');
+    // 不再清理，保留 current* 供返回比對使用
 
     const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
     window.history.replaceState({}, document.title, cleanUrl);

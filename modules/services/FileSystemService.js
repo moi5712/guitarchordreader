@@ -33,7 +33,7 @@ export async function selectSheetsDirectory() {
                 kind: directoryHandle.kind
             }));
         } catch (e) {
-            console.log('無法保存資料夾控制代碼');
+            console.log('資料夾控制代碼保存失敗');
         }
 
         // The function `scanDirectoryForSheets` is not defined in `function.js`.

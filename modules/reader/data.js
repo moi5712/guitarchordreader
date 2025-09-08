@@ -7,14 +7,11 @@ export function getCurrentSheetContent() {
 }
 
 // 載入樂譜
-export function importScore(text) {
+export function importScore(text, filename = null) {
   // --- 資料清理與統一 ---
   // 1. 將當前內容設定為唯一的真相來源
   sessionStorage.setItem("currentSheetContent", text);
-  // 2. 清理舊的、可能衝突的暫存
-  localStorage.removeItem("currentSheetContent");
-  localStorage.removeItem("editorContent");
-  sessionStorage.removeItem("currentSheet"); // 清理舊的key
+  // 其餘舊版暫存鍵已全面停用，不再進行清除
 
   const newCustomChordFingerings = {};
   const meta = {};
@@ -81,7 +78,8 @@ export function importScore(text) {
           bpm: meta.bpm ? Number(meta.bpm) : song.meta.bpm,
           time: meta.time || song.meta.time,
           capo: meta.capo ? Number(meta.capo) : song.meta.capo,
-      }
+      },
+      filename: filename || song.filename || null,
   };
   setSong(newSong);
 }

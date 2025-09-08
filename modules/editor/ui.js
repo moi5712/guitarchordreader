@@ -41,25 +41,10 @@ export function initEditor() {
     let initialContent = '';
     let initialFilename = null;
 
-    // 1. Try to load a sheet passed from the library via sessionStorage
-    const contentFromSession = sessionStorage.getItem('sheetToEdit_content');
-    const filenameFromSession = sessionStorage.getItem('sheetToEdit_filename');
-
-    if (contentFromSession !== null && filenameFromSession !== null) { // Check for null, as content can be an empty string
-        initialContent = contentFromSession;
-        initialFilename = filenameFromSession;
-
-        // Clean up sessionStorage items immediately after reading
-        sessionStorage.removeItem('sheetToEdit_content');
-        sessionStorage.removeItem('sheetToEdit_filename');
-        
-        // Set the filename for saving logic
-        setCurrentFilename(initialFilename);
-
-    } else {
-        // 2. If nothing was passed, fallback to the auto-saved draft in sessionStorage
-        initialContent = sessionStorage.getItem("currentSheetContent") || "";
-    }
+    // 讀取統一鍵：currentSheetContent / currentFilename
+    initialContent = sessionStorage.getItem('currentSheetContent') || "";
+    initialFilename = sessionStorage.getItem('currentFilename');
+    setCurrentFilename(initialFilename || null);
 
     // 更新文本區和暫存區
     document.getElementById("editorTextarea").value = initialContent;

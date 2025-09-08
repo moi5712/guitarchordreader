@@ -16,22 +16,15 @@ server.listen(PORT, () => {
     console.log(`Editor: http://localhost:${PORT}/editor.html`);
     console.log(`API: http://localhost:${PORT}/api/sheets`);
     console.log('');
-    console.log('Press Ctrl+C to stop server');
+    console.log('按下 Ctrl+C 可停止伺服器');
 }).on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
-        console.log(`Port ${PORT} is already in use.`);
-        console.log('Please close other instances or use a different port.');
+        console.log(`埠號 ${PORT} 已被佔用。`);
+        console.log('請關閉其他執行中的實例或改用其他埠號。');
         console.log('');
-        console.log('Opening static file mode instead...');
-
-        // 嘗試開啟靜態檔案
-        exec('start "" "library.html"', (error) => {
-            if (error) {
-                console.log('Please manually open library.html');
-            }
-        });
+        // 不再自動開啟靜態檔案
     } else {
-        console.error('Server error:', err);
+        console.error('伺服器錯誤:', err);
     }
     process.exit(1);
 });

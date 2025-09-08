@@ -3,6 +3,7 @@ import { insertChord } from './textarea.js';
 
 let customChords = {};
 
+// --- 新增自定義和弦 ---
 export function addCustomChord() {
   const chordName = document
     .getElementById("customChordName")
@@ -19,27 +20,23 @@ export function addCustomChord() {
     return;
   }
 
-  // 驗證指法 - 允許全部空弦
   const fingering = [fret6, fret5, fret4, fret3, fret2, fret1];
-  const validFrets = fingering.filter((f) => f > 0);
-  const hasValidInput = fingering.some((f) => f !== 0); // 至少有一個非空弦輸入
+  const isAllNegativeOne = fingering.every((f) => f === -1);
+  const isAllInRange = fingering.every((f) => f >= -1 && f <= 24);
 
-  if (!hasValidInput) {
-    showAlert("請至少輸入一個有效的指法");
+  if (!isAllInRange || isAllNegativeOne) {
+    showAlert("指法無效");
     return;
   }
 
-  // 保存自定義和弦
   customChords[chordName] = fingering;
-  localStorage.setItem("customChords", JSON.stringify(customChords));
+  sessionStorage.setItem("customChords", JSON.stringify(customChords));
 
-  // 添加到樂譜中
+  // --- 添加到樂譜中 ---
   const textarea = document.getElementById("editorTextarea");
   const currentContent = textarea.value;
   const customChordLine = `@${chordName}: ${fingering.join(",")}`;
-
-  // 檢查是否已經存在該和弦定義
-  const lines = currentContent.split("\n");
+  const lines = currentContent.split("\n");  // 檢查是否已經存在該和弦定義
   const existingIndex = lines.findIndex((line) =>
     line.trim().startsWith(`@${chordName}:`)
   );
@@ -47,11 +44,10 @@ export function addCustomChord() {
   if (existingIndex >= 0) {
     lines[existingIndex] = customChordLine;
   } else {
-    // 找到第一個非 meta 行，在其前面插入
     let insertIndex = 0;
     for (let i = 0; i < lines.length; i++) {
       if (lines[i].trim() && !lines[i].trim().startsWith("#")) {
-        insertIndex = i;
+        insertIndex = i;// 找到第一個非 meta 行，在其前面插入
         break;
       }
     }
@@ -73,12 +69,13 @@ export function addCustomChord() {
   renderCustomChords();
 }
 
+// --- 移除自定義和弦 ---
 export async function deleteCustomChord(chordName) {
-  if (await showConfirm(`確定要刪除和弦 "${chordName}" 嗎？`)) {
+  if (await showConfirm(`確定要刪除 ${chordName} 和弦嗎？`)) {
     delete customChords[chordName];
-    localStorage.setItem("customChords", JSON.stringify(customChords));
+    sessionStorage.setItem("customChords", JSON.stringify(customChords));
 
-    // 從樂譜中移除該和弦定義
+
     const textarea = document.getElementById("editorTextarea");
     const currentContent = textarea.value;
     const lines = currentContent.split("\n");
@@ -92,6 +89,7 @@ export async function deleteCustomChord(chordName) {
   }
 }
 
+// --- 自定義和弦面板 ---
 export function renderCustomChords() {
   const customChordGrid = document.getElementById("customChordGrid");
   customChordGrid.innerHTML = "";
@@ -101,7 +99,7 @@ export function renderCustomChords() {
     btn.className = "custom-chord-btn";
     btn.textContent = chordName;
 
-    // 添加刪除按鈕
+    // 刪除按鈕
     const deleteBtn = document.createElement("button");
     deleteBtn.className = "delete-btn";
     deleteBtn.textContent = "×";
@@ -111,24 +109,26 @@ export function renderCustomChords() {
     };
     btn.appendChild(deleteBtn);
 
-    // 點擊插入和弦
+    // 和弦按鈕
     btn.onclick = () => insertChord(chordName);
     customChordGrid.appendChild(btn);
   });
 }
 
+// --- 載入自定義和弦 ---
 export function loadCustomChords() {
-  const saved = localStorage.getItem("customChords");
+  const saved = sessionStorage.getItem("customChords");
   if (saved) {
     try {
       customChords = JSON.parse(saved);
       renderCustomChords();
     } catch (e) {
-      console.log("無法載入自定義和弦");
+      console.log("自定義和弦載入失敗");
     }
   }
 }
 
+// --- 從樂譜解析自定義和弦 ---
 export function loadCustomChordsFromText(text) {
   const lines = text.split("\n");
   const newCustomChords = {};
@@ -161,8 +161,8 @@ export function loadCustomChordsFromText(text) {
     }
   });
 
-  // 合併新的自定義和弦
-  customChords = { ...customChords, ...newCustomChords };
-  localStorage.setItem("customChords", JSON.stringify(customChords));
-  renderCustomChords();
+  
+  customChords = { ...customChords, ...newCustomChords };// 寫入新和弦
+  sessionStorage.setItem("customChords", JSON.stringify(customChords)); // 儲存到 sessionStorage
+  renderCustomChords(); // 重新渲染按鈕
 }

@@ -46,7 +46,7 @@
   font-style: normal;
   font-display: swap;
 }
-/* ==================== 基礎重置 ==================== */
+/* ==================== 基礎設置 ==================== */
 * {
   box-sizing: border-box;
 }
@@ -414,6 +414,7 @@ body {
 
 .score.has-content {
   padding: 24px;
+  user-select: none;
 }
 
 .floating {
@@ -1005,7 +1006,7 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  padding: 12px 16px;
+  padding: 4px 16px;
   background: var(--hover);
   border-radius: 8px;
   font-size: 14px;
@@ -1198,12 +1199,14 @@ html::-webkit-scrollbar {
   }
 }
 @media (max-width: 685px) {
-  /* 在手機版顯示設定按鈕 */
+  /* 手機板設定選項 */
   .mobile-only {
     display: flex !important;
   }
+  .desktop-only-icon {
+    display: none !important;
+  }
 
-  /* 手機板設定選項 */
   .topbar .tiny:not(.mobile-only),
   .topbar .input:not(.mobile-only) {
     display: none;
@@ -1232,8 +1235,15 @@ html::-webkit-scrollbar {
   .modal-footer .btn {
     width: 100%;
   }
+  .editor-layout {
+    grid-template-columns: 1fr;
+  }
+  .left-sidebar {
+    display: none;
+  }
 }
 @media (max-width: 480px) {
+
   .speed-slider {
     width: -webkit-fill-available !important;
   }
@@ -1247,12 +1257,21 @@ html::-webkit-scrollbar {
   .wrap {
     padding: 71px 0px 0px 0px;
   }
+
   .card {
     border-radius: 0px;
     border: 0px;
     box-shadow: none;
     padding-top: calc(50vh - 200px);
     padding-bottom: 70px;
+  }
+  .editor-mode .card {
+    padding-top: 0px;
+    padding-bottom: 0px;
+  }
+  .editor-mode .editor {
+    min-height: 0px;
+    height: calc(100vh - 139px);
   }
   .topbar {
     background: var(--floating-bg);
@@ -1302,4 +1321,11 @@ html::-webkit-scrollbar {
   .sheets-grid {
     gap: 0px;
   }
+}
+
+/*Editor Mobile Settings*/
+.editor-settings-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }

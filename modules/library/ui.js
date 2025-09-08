@@ -81,9 +81,10 @@ function createSheetCard(sheet) {
 function openSheet(filename) {
     const sheet = currentSheets.find(s => s.filename === filename);
     if (sheet) {
-        const encodedContent = encodeURIComponent(sheet.content);
-        const url = `reader.html?content=${encodedContent}`;
-        window.open(url, '_blank');
+        // 使用統一鍵：currentSheetContent / currentFilename
+        sessionStorage.setItem('currentSheetContent', sheet.content);
+        sessionStorage.setItem('currentFilename', sheet.filename);
+        window.open('reader.html', '_blank');
     }
 }
 
@@ -91,9 +92,9 @@ function openSheet(filename) {
 function editSheet(filename) {
     const sheet = currentSheets.find(s => s.filename === filename);
     if (sheet) {
-        // Save data to sessionStorage before opening the new tab
-        sessionStorage.setItem('sheetToEdit_content', sheet.content);
-        sessionStorage.setItem('sheetToEdit_filename', sheet.filename);
+        // 使用統一鍵：currentSheetContent / currentFilename
+        sessionStorage.setItem('currentSheetContent', sheet.content);
+        sessionStorage.setItem('currentFilename', sheet.filename);
         window.open('editor.html', '_blank');
     }
 }
@@ -140,7 +141,7 @@ export function renderTagButtons() {
         const button = document.createElement('button');
         button.className = `tag-btn ${selectedTags.has(tag) ? 'active' : ''}`;
         button.textContent = tag;
-        button.title = `${tag} (${count} 首)`;
+        button.title = `${tag} ( ${count} )`;
         button.onclick = () => toggleTag(tag);
         return button;
     };

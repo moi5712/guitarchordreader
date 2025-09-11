@@ -112,15 +112,27 @@ export function parseSheetMeta(content) {
   
     for (const line of lines) {
       const trimmed = line.trim();
-      if (!trimmed.startsWith('#')) break;
+      
+      // 如果是空行，跳過
+      if (!trimmed) continue;
+
+      // 如果不是 # 或 @ 開頭，就代表 meta 資訊結束
+      if (!trimmed.startsWith('#') && !trimmed.startsWith('@')) break;
   
-      const match = trimmed.match(/^#(\w+):\s*(.*)$/);
-      if (match) {
-        if (match[1] === 'tags') {
-          // 解析標籤，支援逗號分隔
-          meta.tags = match[2].split(',').map(tag => tag.trim()).filter(tag => tag);
-        } else {
-          meta[match[1]] = match[2];
+      if (trimmed.startsWith('#')) {
+        const match = trimmed.match(/^#(\w+):\s*(.*)$/);
+        if (match) {
+          if (match[1] === 'tags') {
+            // 解析標籤，支援逗號分隔
+            meta.tags = match[2].split(',').map(tag => tag.trim()).filter(tag => tag);
+          } else {
+            meta[match[1]] = match[2];
+          }
+        }
+      } else if (trimmed.startsWith('@image:')) {
+        const match = trimmed.match(/^@image:\s*(.*)$/);
+        if (match) {
+          meta.image = match[1].trim();
         }
       }
     }

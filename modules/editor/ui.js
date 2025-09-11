@@ -14,6 +14,7 @@ async function updateMetaInfo() {
     const key = document.getElementById("songKey").value;
     const bpm = document.getElementById("songBpm").value;
     const capo = document.getElementById("songCapo").value;
+    const image = document.getElementById("songImg").value;
 
     let metaText = "";
     if (title) metaText += `#title: ${title}\n`;
@@ -22,16 +23,38 @@ async function updateMetaInfo() {
     if (key) metaText += `#key: ${key}\n`;
     if (bpm) metaText += `#bpm: ${bpm}\n`;
     if (capo) metaText += `#capo: ${capo}\n`;
+    if (image) metaText += `@image: ${image}\n`;
 
-    if (metaText) {
-        const textarea = document.getElementById("editorTextarea");
-        const currentContent = textarea.value;
-        const lines = currentContent.split("\n");
-        const nonMetaLines = lines.filter((line) => !line.startsWith("#"));
+    const textarea = document.getElementById("editorTextarea");
+    const currentContent = textarea.value;
+    const lines = currentContent.split('\n');
 
+    // Find the index of the first line that is NOT a meta tag or empty.
+    let firstContentIndex = lines.findIndex(line => 
+        line.trim() !== '' && 
+        !line.trim().startsWith('#') && 
+        !line.trim().startsWith('@')
+    );
+
+    // If no content lines are found, it means the whole file is meta/empty.
+    if (firstContentIndex === -1) {
+        // Just write the new meta. Add a couple of newlines for future content.
+        const newContent = metaText.trimEnd() + '\n\n';
+        textarea.value = newContent;
         saveToHistory();
-        textarea.value = metaText + nonMetaLines.join("\n");
+        return;
     }
+
+    // Get all the lines from the first content line onwards.
+    const contentBlock = lines.slice(firstContentIndex).join('\n');
+
+    // Add a separator. If meta is empty, no separator. Otherwise, two newlines.
+    const separator = metaText ? '\n\n' : '';
+
+    const newContent = metaText.trimEnd() + separator + contentBlock;
+
+    saveToHistory();
+    textarea.value = newContent;
 }
 
 export function initEditor() {
@@ -59,6 +82,7 @@ export function initEditor() {
         if (meta.key) document.getElementById("songKey").value = meta.key;
         if (meta.bpm) document.getElementById("songBpm").value = meta.bpm;
         if (meta.capo) document.getElementById("songCapo").value = meta.capo;
+        if (meta.image) document.getElementById("songImg").value = meta.image;
         loadCustomChordsFromText(initialContent);
     }
 
@@ -90,16 +114,12 @@ export function initEditor() {
 
     saveToHistory();
 
-    // --- 事件綁定 ---
-    document.getElementById("homeBtn").onclick = () => {
-        window.location.href = "library.html";
-    };
 
     document.getElementById("playBtn").onclick = () => {
         // 前往閱讀器前，確保最新的內容已存入暫存區
         const currentContent = document.getElementById("editorTextarea").value;
         sessionStorage.setItem("currentSheetContent", currentContent);
-        window.location.href = "reader.html";
+        window.location.href = 'reader.html';
     };
 
     document.getElementById("newBtn").onclick = newDocument;

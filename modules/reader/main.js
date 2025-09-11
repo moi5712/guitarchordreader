@@ -31,13 +31,10 @@ function init() {
     const currentFilename = song.filename;
     sessionStorage.setItem('currentSheetContent', currentContent || "");
     if (currentFilename) sessionStorage.setItem('currentFilename', currentFilename); else sessionStorage.removeItem('currentFilename');
-    window.location.href = "editor.html";
+    window.location.href = 'editor.html';
   };
 
   playBtn.onclick = togglePlay;
-  homeBtn.onclick = function () {
-    window.location.href = "library.html";
-  };
   importBtn.onclick = function () {
     importFile.click();
   };
@@ -47,7 +44,7 @@ function init() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (evt) => {
-        importScore(evt.target.result);
+        importScore(evt.target.result, file.name);
         render();
         collectTargets();
     };
@@ -139,38 +136,32 @@ function init() {
 window.addEventListener('load', () => {
     init();
 
-    let contentToLoad = null;
-    let filenameToLoad = null;
-
-    // 統一改為讀取 current*
-    contentToLoad = sessionStorage.getItem('currentSheetContent');
-    filenameToLoad = sessionStorage.getItem('currentFilename');
+    const contentToLoad = sessionStorage.getItem('currentSheetContent');
+    const filenameToLoad = sessionStorage.getItem('currentFilename');
 
     if (contentToLoad) {
-        importScore(contentToLoad, filenameToLoad); // Pass filenameToLoad
+        importScore(contentToLoad, filenameToLoad);
         render();
         collectTargets();
     }
-
-    // 不再清理，保留 current* 供返回比對使用
-
+    
     const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-    window.history.replaceState({}, document.title, cleanUrl);
+    if (window.location.href !== cleanUrl) {
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
 });
 
-// 當使用者透過瀏覽器返回（可能啟用 BFCache）或頁面重新可見時，
-// 檢查 sessionStorage 是否有較新的內容，必要時重新載入與渲染。
+// When the user navigates back and forth, ensure the content is up-to-date
 function reloadIfSessionChanged() {
-    const latest = getCurrentSheetContent();
-    if (latest && latest !== song.originalContent) {
-        importScore(latest);
+    const latestContent = getCurrentSheetContent();
+    if (latestContent && latestContent !== song.originalContent) {
+        importScore(latestContent, song.filename);
         render();
         collectTargets();
     }
 }
 
 window.addEventListener('pageshow', (e) => {
-    // 無論是否從 BFCache 還原，都做一次比對
     reloadIfSessionChanged();
 });
 
@@ -179,7 +170,6 @@ document.addEventListener('visibilitychange', () => {
         reloadIfSessionChanged();
     }
 });
-
 
 document.addEventListener("dragover", (e) => {
   e.preventDefault();
@@ -196,7 +186,7 @@ document.addEventListener("drop", (e) => {
     if (file.name.endsWith(".txt") || file.name.endsWith(".gtab")) {
       const reader = new FileReader();
       reader.onload = (evt) => {
-          importScore(evt.target.result);
+          importScore(evt.target.result, file.name);
           render();
           collectTargets();
       };

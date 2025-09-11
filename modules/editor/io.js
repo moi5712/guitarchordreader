@@ -14,6 +14,10 @@ function initIO() {
 }
 initIO();
 
+export function getCurrentFilename() {
+    return currentFilename;
+}
+
 // 設定檔案名稱同步到 sessionStorage
 export function setCurrentFilename(filename) {
     currentFilename = filename;
@@ -73,7 +77,7 @@ export function importDocument(text, filename) {
     sessionStorage.setItem('currentFilename', filename || "");
 
     // 清空所有欄位
-    ["songTitle", "songArtist", "songTags", "songKey", "songBpm", "songCapo"].forEach(
+    ["songTitle", "songArtist", "songTags", "songKey", "songBpm", "songCapo", "songImg"].forEach(
         (id) => {
             document.getElementById(id).value = "";
         }
@@ -88,6 +92,7 @@ export function importDocument(text, filename) {
     if (meta.key) document.getElementById("songKey").value = meta.key;
     if (meta.bpm) document.getElementById("songBpm").value = meta.bpm;
     if (meta.capo) document.getElementById("songCapo").value = meta.capo;
+    if (meta.image) document.getElementById("songImg").value = meta.image;
 
     // 載入自定義和弦
     loadCustomChordsFromText(text);

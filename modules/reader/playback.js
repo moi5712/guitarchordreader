@@ -17,7 +17,7 @@ function startScroll() {
   const newRafId = requestAnimationFrame(loop);
   setRafId(newRafId);
   const playBtn = document.getElementById("playBtn");
-  playBtn.textContent = "⏹ 停止";
+  playBtn.textContent = "停止";
   playBtn.classList.remove("primary");
 }
 
@@ -30,7 +30,7 @@ export function togglePlay() {
     const countdownDisplay = document.getElementById("countdownDisplay");
     countdownDisplay.style.display = "none";
     setAccumulatedScroll(0);
-    playBtn.textContent = "▶︎ 開始";
+    playBtn.textContent = "開始";
     playBtn.classList.add("primary");
     playBtn.disabled = false;
   } else {

@@ -10,18 +10,27 @@ function parseSheetMeta(content) {
     
     for (const line of lines) {
         const trimmed = line.trim();
+
+        if (!trimmed) continue; // Skip empty lines
+
+        if (!trimmed.startsWith('#') && !trimmed.startsWith('@')) {
+            break; // Stop at the first content line
+        }
+
         if (trimmed.startsWith('#')) {
             const match = trimmed.match(/^#(\w+):\s*(.*)$/);
             if (match) {
                 if (match[1] === 'tags') {
-                    // 解析標籤，支援逗號分隔
                     meta.tags = match[2].split(',').map(tag => tag.trim()).filter(tag => tag);
                 } else {
                     meta[match[1]] = match[2];
                 }
             }
-        } else {
-            break; // 遇到非 meta 行就停止
+        } else if (trimmed.startsWith('@image:') || trimmed.startsWith('@image=')) {
+            const match = trimmed.match(/^@image[:=]\s*(.*)$/);
+            if (match) {
+                meta.image = match[1].trim();
+            }
         }
     }
     
@@ -49,6 +58,7 @@ function scanSheetsFolder() {
                     bpm: meta.bpm || '',
                     capo: meta.capo || '',
                     tags: meta.tags || [], // 添加標籤欄位
+                    image: meta.image || '',
                     content: content,
                     lastModified: stats.mtime.getTime(),
                     size: stats.size

@@ -4,16 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>吉他譜閱讀器</title>
-    <link rel="stylesheet" href="styles.css" />
-      <link rel="icon" href="favicon.svg" type="image/svg+xml">
-</head>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
   <body>
     <!-- 倒數數字 -->
     <div id="countdownDisplay"></div>
 
     <!-- 頂部工具欄 -->
     <header class="topbar">
-      <button id="homeBtn" class="btn primary">首頁</button>
+      <a href="/" id="homeBtn" class="btn primary">首頁</a>
       <button id="editBtn" class="btn secondary">編輯模式</button>
       <button id="importBtn" class="btn">載入</button>
 
@@ -106,7 +106,10 @@
     </main>
 
     <div class="floating tiny">
-      <button id="playBtn" class="btn primary">▶︎ 開始</button>
+      <button id="playBtn" class="btn primary">
+        開始
+      </button>
+      <a href="#" class="btn">回到頂部</a>
       <label class="tiny">速度</label>
       <input
         id="speed"
@@ -182,7 +185,6 @@
       </div>
     </div>
 
-
-    <script type="module" src="./modules/reader/main.js"></script>
+    <script type="module" src="/modules/reader/main.js"></script>
   </body>
 </html>

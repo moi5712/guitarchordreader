@@ -33,6 +33,11 @@ export function importScore(text, filename = null) {
       if (m) {
         meta[m[1]] = m[2];
       }
+    } else if (line.startsWith("@image:") || line.startsWith("@image=")) {
+        const match = line.match(/^@image[:=]\s*(.*)$/);
+        if (match) {
+          meta.image = match[1].trim();
+        }
     } else if (line.startsWith("@")) {
       const m = line.match(/^@([^:]+):\s*(.*)$/);
       if (m) {
@@ -78,6 +83,7 @@ export function importScore(text, filename = null) {
           bpm: meta.bpm ? Number(meta.bpm) : song.meta.bpm,
           time: meta.time || song.meta.time,
           capo: meta.capo ? Number(meta.capo) : song.meta.capo,
+          image: meta.image || null,
       },
       filename: filename || song.filename || null,
   };

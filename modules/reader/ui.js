@@ -109,7 +109,7 @@ export function render() {
   if (song.meta.artist) {
     titleElement.innerHTML = `
             <div style="font-size: 0.9em; font-weight: bold; margin-bottom: 4px;">${song.meta.title || ""}</div>
-            <div style="font-size: 0.7em; font-weight: normal; color: #666;">${song.meta.artist}</div>
+            <div style="font-size: 0.7em; font-weight: normal; color: var(--muted);">${song.meta.artist}</div>
           `;
   } else {
     titleElement.textContent = song.meta.title || "";
@@ -138,6 +138,13 @@ export function render() {
 
   const headerEl = document.querySelector(".card > .meta, .card > header.meta, .card > header");
   const cardEl = document.querySelector(".card");
+
+  if (headerEl) {
+    const imageUrl = song.meta.image || 'guitar4.jpg';
+    headerEl.style.backgroundImage = `url('${imageUrl}')`;
+    headerEl.style.backgroundSize = 'cover';
+    headerEl.style.backgroundPosition = 'center';
+  }
 
   if (!hasContent) {
     if (headerEl) headerEl.style.display = "none";

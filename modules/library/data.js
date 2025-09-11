@@ -10,6 +10,7 @@ import {
   setFilteredSheets,
   setNormalTagCounts,
   setArtistTagCounts,
+  showBookmarksOnly,
 } from "./state.js";
 
 // --- GitHub API 掃描樂譜檔案 ---
@@ -95,6 +96,7 @@ async function autoScanSheetsFolder() {
               title: meta.title || filename.replace(/\.(txt|gtab)$/, ""),
               artist: meta.artist || "",
               tags: meta.tags || [],
+              image: meta.image,
               content: content,
               lastModified: Date.now(),
               addedDate: new Date().toISOString(),
@@ -158,12 +160,44 @@ function collectTags() {
   setArtistTagCounts(newArtistTagCounts);
 }
 
+// --- 更新書籤 --- 
+export async function updateBookmark(filename, bookmarked) {
+    try {
+        const response = await fetch('./api/bookmark', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ filename, bookmarked }),
+        });
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                // 更新本地數據
+                const sheet = currentSheets.find(s => s.filename === filename);
+                if (sheet) {
+                    sheet.bookmarked = bookmarked;
+                }
+                return true;
+            }
+        }
+    } catch (error) {
+        console.error('更新書籤失敗:', error);
+    }
+    return false;
+}
+
 // --- 篩選樂譜 ---
 export function filterSheets() {
   const searchInput = document.getElementById("searchInput");
   const searchQuery = searchInput.value.toLowerCase().trim();
 
   const newFilteredSheets = currentSheets.filter((sheet) => {
+    // 書籤篩選
+    if (showBookmarksOnly && !sheet.bookmarked) {
+        return false;
+    }
+
     // 搜尋篩選
     const matchesSearch =
       !searchQuery ||

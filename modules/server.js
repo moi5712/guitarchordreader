@@ -11,7 +11,7 @@ const server = http.createServer(handleRequest);
 server.listen(PORT, () => {
     console.log(`Guitar Sheet Server Started`);
     console.log(`Local: http://localhost:${PORT}`);
-    console.log(`Library: http://localhost:${PORT}/library.html`);
+    console.log(`Library: http://localhost:${PORT}/index.html`);
     console.log(`Reader: http://localhost:${PORT}/reader.html`);
     console.log(`Editor: http://localhost:${PORT}/editor.html`);
     console.log(`API: http://localhost:${PORT}/api/sheets`);

@@ -7,17 +7,17 @@ try {
         Write-Host "Node.js found: $nodeVersion" -ForegroundColor Green
         Write-Host "Starting server..." -ForegroundColor Yellow
         
-        # Start browser after a short delay
-        Start-Process "http://localhost:3000/"
+        # Start Node.js server in the background
+        Start-Process node -ArgumentList "modules/server.js" -NoNewWindow
         
-        # Start Node.js server
-        node modules/server.js
+        # Open browser after a short delay
+        Start-Process "http://localhost:3000/u-chord/"
     } else {
         throw "Node.js not found"
     }
 } catch {
     Write-Host "Node.js not found. Opening static file mode..." -ForegroundColor Yellow
-    Start-Process "library.html"
+    
 }
 
 Write-Host "Press any key to exit..." -ForegroundColor Gray

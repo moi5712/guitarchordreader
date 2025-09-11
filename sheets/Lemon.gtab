@@ -1,9 +1,12 @@
 #title: Lemon
 #artist: 米津玄師
-#tags:日文,流行,抒情
+#tags:流行,抒情
 #key: G
 #bpm: 87
 #capo: 1
+
+@image=https://m.media-amazon.com/images/I/91ufveUUmGL._AC_SL1500_.jpg
+
 
 [verse]
 夢[Em]ならばど[D]れほどよ[C]かったで[G]しょう

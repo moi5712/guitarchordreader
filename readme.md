@@ -4,7 +4,7 @@
 
 ## 線上試用
 
-- [首頁/樂譜庫 ↗](https://moi5712.github.io/guitarchordreader/library.html)
+- [首頁/樂譜庫 ↗](https://moi5712.github.io/guitarchordreader/index.html)
 - [閱讀器 ↗](https://moi5712.github.io/guitarchordreader/reader.html)
 - [編輯器 ↗](https://moi5712.github.io/guitarchordreader/editor.html)
 

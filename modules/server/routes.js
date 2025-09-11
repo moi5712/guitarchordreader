@@ -41,22 +41,10 @@ const mimeTypes = {
 function handleRequest(req, res) {
     const parsedUrl = url.parse(req.url, true);
     let pathname = parsedUrl.pathname;
-    const uChordPrefix = '/u-chord';
 
-    // Redirect root '/' to the namespaced '/u-chord/'
-    if (pathname === '/') {
-        res.writeHead(302, { 'Location': uChordPrefix + '/' });
-        res.end();
-        return;
-    }
-
-    // If the path is part of the u-chord namespace, strip the prefix
-    if (pathname.startsWith(uChordPrefix)) {
-        pathname = pathname.substring(uChordPrefix.length);
-        // If we are left with an empty path, it's the root of the namespace, serve index.html
-        if (pathname === '' || pathname === '/') {
-            pathname = '/index.html';
-        }
+    // 直接處理根目錄，導向 index.html
+    if (pathname === '/' || pathname === '') {
+        pathname = '/index.html';
     }
 
     // 設置 CORS 標頭

@@ -11,7 +11,7 @@ try {
         Start-Process node -ArgumentList "modules/server.js" -NoNewWindow
         
         # Open browser after a short delay
-        Start-Process "http://localhost:3000/u-chord/"
+        Start-Process "http://localhost:3000/"
     } else {
         throw "Node.js not found"
     }

@@ -10,7 +10,7 @@
 
 ## 內容說明
 
-- `library.html`：首頁/樂譜庫。
+- `index.html`：首頁/樂譜庫。
 - `editor.html`：編輯和弦譜。
 - `reader.html`：演奏和弦譜。
 - `chord-database.js`：和弦指法數據庫。
@@ -64,6 +64,7 @@
 #bpm: 速度
 #time: 拍號
 #capo: 移調夾
+@image: https://...
 
       不彈  空弦  第3格
        ↓     ↓     ↓

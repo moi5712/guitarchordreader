@@ -1,0 +1,7 @@
+# 網址導入失敗時由 url-importer 寫出的除錯 HTML
+debug_no_variable_*.html
+
+# 依賴與建置
+node_modules/
+dist/
+build/

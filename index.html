@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>u-chord</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+  </head>
+  <body>
+    <header class="library-header">
+      <div class="library-header-content">
+        <div class="library-header-top">
+          <a href="/" class="library-title">u-chord</a>
+          <button
+            id="libraryFilterBtn"
+            class="btn-icon library-filter-btn mobile-only"
+            type="button"
+            title="標籤篩選"
+            aria-label="標籤篩選"
+            aria-expanded="false"
+            aria-controls="libraryFilterDrawer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+            </svg>
+          </button>
+          <input
+            id="searchInput"
+            class="input library-search-input"
+            type="text"
+            placeholder="搜尋樂譜、作者或標籤..."
+          />
+          <div class="library-header-right">
+            <button id="newBtn" class="btn-icon" title="新增樂譜">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+            </button>
+            <div id="newMenu" class="library-new-menu" aria-hidden="true">
+              <button type="button" class="library-new-menu-item" data-action="new">新增樂譜</button>
+              <button type="button" class="library-new-menu-item" data-action="importUrl">網址導入</button>
+              <button type="button" class="library-new-menu-item" data-action="importFile">載入樂譜</button>
+            </div>
+          </div>
+          <input id="libraryImportFile" type="file" accept=".txt,.gtab" class="hidden" />
+        </div>
+      </div>
+    </header>
+
+    <!-- 網址導入模態視窗 -->
+    <div id="importUrlModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h3 class="modal-title">從網址導入</h3>
+        <p class="modal-message">請在下方貼上網址，每個網址一行。僅支援 ufret.jp 網站。</p>
+        <textarea id="urlTextarea" class="editor-textarea" rows="10" placeholder="https://www.ufret.jp/song.php?data=..."></textarea>
+        <div class="modal-actions">
+          <button id="importUrlConfirmBtn" class="btn primary">導入</button>
+          <button id="importUrlCancelBtn" class="btn secondary">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="library-container">
+      <div id="libraryFilterDrawer" class="library-filter-drawer" aria-hidden="true">
+        <button type="button" class="library-filter-backdrop" id="libraryFilterBackdrop" aria-label="關閉篩選"></button>
+        <aside class="sidebar">
+          <div class="library-filter-header">
+            <h2 id="libraryFilterTitle" class="library-filter-title">篩選</h2>
+            <button id="libraryFilterClose" type="button" class="btn-icon library-filter-close" aria-label="關閉">✕</button>
+          </div>
+          <div class="library-toolbar-controls">
+            <button
+              id="showBookmarksBtn"
+              class="tag-btn library-bookmark-toggle"
+            >
+              我的書籤
+            </button>
+            <div class="library-sort-group">
+              <label for="sortBy">排序</label>
+              <select id="sortBy" class="select">
+                <option value="A-Z">A - Z</option>
+                <option value="Z-A">Z - A</option>
+                <option value="latest">最近</option>
+                <option value="earliest">最早</option>
+                <option value="frequent">常用</option>
+              </select>
+            </div>
+            <button
+              id="selectSheetsFolderBtn"
+              class="tag-btn library-folder-btn"
+              type="button"
+              title="指定樂譜資料夾"
+            >
+              指定資料夾
+            </button>
+          </div>
+          <div class="sidebar-section sidebar-section-tags">
+            <h2 class="sidebar-title">標籤</h2>
+            <div class="tag-buttons" id="normalTagButtons">
+              <!-- 動態生成的標籤按鈕 -->
+            </div>
+            <h2 class="sidebar-title">演出者</h2>
+            <div class="tag-buttons" id="artistTagButtons">
+              <!-- 動態生成的標籤按鈕 -->
+            </div>
+          </div>
+        </aside>
+      </div>
+      <main class="main-content">
+        <div id="statusBar" class="status-bar">
+          <div class="status-bar-main">
+            <span id="sheetCount">0 首樂譜</span>
+            <span id="statusFilters" class="status-filter-text">未套用篩選</span>
+          </div>
+          <div class="status-bar-actions">
+            <button id="clearTagsBtn" class="btn secondary hidden">清除篩選</button>
+          </div>
+        </div>
+
+        <div id="sheetsContainer" class="sheets-grid">
+          <!-- 樂譜卡片將在這裡動態生成 -->
+        </div>
+
+        <div id="emptyState" class="empty-state hidden">
+          <div class="empty-icon">空</div>
+          <div class="empty-title">沒有樂譜</div>
+          <div class="empty-message" id="emptyMessage">請先指定樂譜資料夾，並將檔案放入該資料夾</div>
+        </div>
+
+        <div id="loadingState" class="empty-state hidden">
+          <div class="empty-title">載入中</div>
+        </div>
+      </main>
+    </div>
+    <a href="#" class="back-to-top"
+      ><svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        class="size-6"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="m4.5 15.75 7.5-7.5 7.5 7.5"
+        />
+      </svg>
+    </a>
+    <script type="module" src="/modules/library/main.js"></script>
+  </body>
+</html>

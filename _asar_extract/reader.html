@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>吉他譜閱讀器</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <!-- 倒數數字 -->
+    <div id="countdownDisplay" class="hidden"></div>
+
+    <!-- 頂部工具欄 -->
+    <header class="topbar">
+      <a href="/" id="homeBtn" class="btn primary">首頁</a>
+      <button id="editBtn" class="btn">編輯模式</button>
+      <button id="importBtn" class="btn">載入</button>
+
+      <input
+        id="importFile"
+        type="file"
+        accept=".txt,.gtab"
+        class="hidden"
+      />
+
+      <div class="topbar-right" role="group" aria-label="閱讀器控制">
+        <fieldset class="topbar-group topbar-controls topbar-desktop-only" aria-label="顯示設定">
+          <label class="tiny" for="fontPx">字級</label>
+          <div class="control-group">
+            <button id="fontPxMinus" type="button" class="control-step-btn" title="縮小字級" aria-label="縮小字級">−</button>
+            <input
+              id="fontPx"
+              class="control-value"
+              type="number"
+              value="18"
+              min="10"
+              max="30"
+              aria-label="字級"
+            />
+            <button id="fontPxPlus" type="button" class="control-step-btn" title="放大字級" aria-label="放大字級">+</button>
+          </div>
+          <label class="tiny" for="lineGap">行距</label>
+          <div class="control-group">
+            <button id="lineGapMinus" type="button" class="control-step-btn" title="縮小行距" aria-label="縮小行距">−</button>
+            <input
+              id="lineGap"
+              class="control-value"
+              type="number"
+              value="14"
+              min="0"
+              max="100"
+              aria-label="行距"
+            />
+            <button id="lineGapPlus" type="button" class="control-step-btn" title="放大行距" aria-label="放大行距">+</button>
+          </div>
+          <label class="tiny" for="transpose">變調</label>
+          <div class="control-group">
+            <button id="transposeMinus" type="button" class="control-step-btn" title="降調" aria-label="降調">−</button>
+            <input
+              id="transpose"
+              class="control-value"
+              type="number"
+              value="0"
+              min="-6"
+              max="6"
+              aria-label="變調"
+            />
+            <button id="transposePlus" type="button" class="control-step-btn" title="升調" aria-label="升調">+</button>
+            <button id="transposeResetBtn" type="button" class="control-reset-btn" title="恢復樂譜預設變調" aria-label="恢復樂譜預設變調">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+            </button>
+          </div>
+          <label class="btn-icon topbar-toggle-btn" for="showFingering" title="指法">
+            <input id="showFingering" type="checkbox" class="topbar-toggle-input" />
+            <span>指法</span>
+          </label>
+        </fieldset>
+
+        <fieldset class="topbar-group topbar-controls topbar-desktop-only" aria-label="演奏設定">
+          <label class="tiny" for="metronomeBpmDisplay">拍速</label>
+          <div class="control-group">
+            <button id="metronomeBpmMinus" type="button" class="control-step-btn" title="減慢 BPM" aria-label="減慢 BPM">−</button>
+            <input
+              id="metronomeBpmDisplay"
+              class="control-value"
+              type="number"
+              value="120"
+              min="40"
+              max="240"
+              aria-label="BPM"
+            />
+            <button id="metronomeBpmPlus" type="button" class="control-step-btn" title="加快 BPM" aria-label="加快 BPM">+</button>
+            <button id="metronomeResetBtn" type="button" class="control-reset-btn" title="恢復樂譜預設速度" aria-label="恢復樂譜預設速度">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+            </button>
+          </div>
+          <label class="btn-icon topbar-toggle-btn" for="countdownEnabled" title="預備拍">
+            <input id="countdownEnabled" type="checkbox" class="topbar-toggle-input" />
+            <span>預備拍</span>
+          </label>
+        </fieldset>
+        <button id="metronomeBtn" class="btn-icon topbar-desktop-only" type="button" title="節拍器" aria-pressed="false">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 11.4V9.1" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="m12 17 6.59-6.59" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="m15.05 5.7-.218-.691a3 3 0 0 0-5.663 0L4.418 19.695A1 1 0 0 0 5.37 21h13.253a1 1 0 0 0 .951-1.31L18.45 16.2" />
+            <circle cx="20" cy="9" r="2" />
+          </svg>
+        </button>
+        <!-- 手機版設定按鈕 -->
+        <button
+          id="mobileSettingsBtn"
+          class="btn-icon mobile-only"
+          type="button"
+          title="設定"
+          aria-label="設定"
+          aria-expanded="false"
+          aria-controls="mobileSettingsSheet"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+            />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="card">
+        <header class="meta">
+          <h1 id="title" class="title"></h1>
+          <p id="subtitle" class="subtitle"></p>
+        </header>
+        <article id="score" class="score"></article>
+      </section>
+    </main>
+
+    <aside class="floating-dock" aria-label="演奏快捷控制">
+      <div class="dock-unit dock-unit--tuner">
+        <div id="tunerPanel" class="tuner-panel dock-panel" aria-hidden="true">
+          <div class="dock-panel-body"></div>
+        </div>
+        <button
+          id="tunerBtn"
+          class="dock-unit-trigger desktop-only"
+          type="button"
+          title="調音器"
+          aria-label="調音器"
+          aria-expanded="false"
+          aria-controls="tunerPanel"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="dock-unit-icon dock-unit-icon--tool" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 4v14M15 4v14M9 18h6M12 18v4" />
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="dock-unit-icon dock-unit-icon--collapse" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="dock-unit dock-unit--recordings">
+        <div id="recordingsPanel" class="tuner-panel dock-panel" aria-hidden="true">
+          <div class="dock-panel-body"></div>
+        </div>
+        <button
+          id="recordingsBtn"
+          class="dock-unit-trigger desktop-only"
+          type="button"
+          title="錄音"
+          aria-label="錄音"
+          aria-expanded="false"
+          aria-controls="recordingsPanel"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="dock-unit-icon dock-unit-icon--tool" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3a3 3 0 0 0-3 3v5a3 3 0 1 0 6 0V6a3 3 0 0 0-3-3Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 10.5a7 7 0 1 1-14 0" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.5V21" />
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="dock-unit-icon dock-unit-icon--collapse" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+
+      <nav class="dock-bar" aria-label="演奏控制">
+        <button id="scrollTopBtn" class="dock-bar-btn" type="button" title="回到頂部" aria-label="回到頂部">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75 12 8.25l7.5 7.5"></path>
+          </svg>
+        </button>
+        <button id="playBtn" class="dock-bar-btn dock-bar-btn--play floating-play-btn primary" type="button" title="開始播放" aria-label="開始播放">
+          <svg class="floating-play-icon floating-play-icon--play" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path>
+          </svg>
+          <svg class="floating-play-icon floating-play-icon--stop" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+          </svg>
+        </button>
+        <div class="dock-bar-speed">
+          <label class="tiny dock-bar-speed-label" for="speed">速度</label>
+          <input id="speed" class="speed-slider" type="range" value="30" min="10" max="100" />
+        </div>
+        <button id="tunerBtnMobile" class="dock-bar-btn dock-bar-btn--tool mobile-only" type="button" title="調音器" aria-label="調音器" aria-expanded="false" aria-controls="tunerPanel">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 4v14M15 4v14M9 18h6M12 18v4" />
+          </svg>
+        </button>
+        <button id="recordingsBtnMobile" class="dock-bar-btn dock-bar-btn--tool mobile-only" type="button" title="錄音" aria-label="錄音" aria-expanded="false" aria-controls="recordingsPanel">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3a3 3 0 0 0-3 3v5a3 3 0 1 0 6 0V6a3 3 0 0 0-3-3Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 10.5a7 7 0 1 1-14 0" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.5V21" />
+          </svg>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- 手機版設定：底部滑出面板 -->
+    <div id="mobileSettingsSheet" class="mobile-sheet" aria-hidden="true">
+      <button type="button" class="mobile-sheet-backdrop" id="mobileSettingsBackdrop" aria-label="關閉設定"></button>
+      <div class="mobile-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="mobileSheetTitle">
+        <div class="mobile-sheet-header">
+          <h2 id="mobileSheetTitle" class="mobile-sheet-title">閱讀設定</h2>
+          <button id="mobileSettingsClose" class="btn-icon mobile-sheet-close" type="button" aria-label="關閉">✕</button>
+        </div>
+        <div class="mobile-sheet-body">
+          <p class="mobile-sheet-section">顯示</p>
+          <div class="mobile-sheet-row">
+            <span class="mobile-sheet-label">字級</span>
+            <div class="control-group">
+              <button id="mobileFontPxMinus" type="button" class="control-step-btn" aria-label="縮小字級">−</button>
+              <span id="mobileSheetFontPx" class="control-value control-value--display">18</span>
+              <button id="mobileFontPxPlus" type="button" class="control-step-btn" aria-label="放大字級">+</button>
+            </div>
+          </div>
+          <div class="mobile-sheet-row">
+            <span class="mobile-sheet-label">行距</span>
+            <div class="control-group">
+              <button id="mobileLineGapMinus" type="button" class="control-step-btn" aria-label="縮小行距">−</button>
+              <span id="mobileSheetLineGap" class="control-value control-value--display">14</span>
+              <button id="mobileLineGapPlus" type="button" class="control-step-btn" aria-label="放大行距">+</button>
+            </div>
+          </div>
+          <div class="mobile-sheet-row">
+            <span class="mobile-sheet-label">變調</span>
+            <div class="control-group">
+              <button id="mobileTransposeMinus" type="button" class="control-step-btn" aria-label="降調">−</button>
+              <span id="mobileSheetTranspose" class="control-value control-value--display">0</span>
+              <button id="mobileTransposePlus" type="button" class="control-step-btn" aria-label="升調">+</button>
+            </div>
+          </div>
+          <div class="mobile-sheet-row mobile-sheet-row--toggle">
+            <span class="mobile-sheet-label" id="mobileFingeringLabel">指法</span>
+            <label class="mobile-sheet-switch mobile-sheet-toggle" for="showFingering" title="指法" aria-labelledby="mobileFingeringLabel"></label>
+          </div>
+          <p class="mobile-sheet-section">演奏</p>
+          <div class="mobile-sheet-row">
+            <span class="mobile-sheet-label">拍速</span>
+            <div class="control-group">
+              <button id="mobileBpmMinus" type="button" class="control-step-btn" aria-label="減慢 BPM">−</button>
+              <span id="mobileSheetBpm" class="control-value control-value--display">120</span>
+              <button id="mobileBpmPlus" type="button" class="control-step-btn" aria-label="加快 BPM">+</button>
+            </div>
+          </div>
+          <div class="mobile-sheet-row mobile-sheet-row--toggle">
+            <span class="mobile-sheet-label" id="mobileCountdownLabel">預備拍</span>
+            <label class="mobile-sheet-switch mobile-sheet-toggle" for="countdownEnabled" title="預備拍" aria-labelledby="mobileCountdownLabel"></label>
+          </div>
+          <div class="mobile-sheet-row mobile-sheet-row--toggle">
+            <span class="mobile-sheet-label" id="mobileMetronomeLabel">節拍器</span>
+            <button id="mobileMetronomeToggle" type="button" class="mobile-sheet-switch mobile-sheet-switch--btn" role="switch" title="節拍器" aria-labelledby="mobileMetronomeLabel" aria-pressed="false"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/modules/reader/main.js"></script>
+  </body>
+</html>

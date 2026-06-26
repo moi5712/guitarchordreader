@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>吉他譜編輯器</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <!-- 模態視窗 -->
+    <div id="customModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h3 id="modalTitle" class="modal-title"></h3>
+        <p id="modalMessage" class="modal-message"></p>
+        <div class="modal-actions">
+          <button id="modalConfirmBtn" class="btn primary hidden">確定</button>
+          <button id="modalCancelBtn" class="btn danger hidden">取消</button>
+          <button id="modalAlertOkBtn" class="btn primary hidden">關閉</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- URL導入模態視窗 -->
+    <div id="importUrlModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h3 class="modal-title">從網址導入</h3>
+        <p class="modal-message">
+          請在下方貼上網址，每個網址一行。僅支援 ufret.jp 網站。
+        </p>
+        <textarea
+          id="urlTextarea"
+          class="editor-textarea"
+          rows="10"
+          placeholder="https://www.ufret.jp/song.php?data=..."
+        ></textarea>
+        <div class="modal-actions">
+          <button id="importUrlConfirmBtn" class="btn primary">導入</button>
+          <button id="importUrlCancelBtn" class="btn secondary">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 頂部工具欄 -->
+    <header class="topbar">
+      <!-- 導航 -->
+      <a href="/" id="homeBtn" class="btn primary">首頁</a>
+      <button id="playBtn" class="btn">演奏模式</button>
+
+      <div class="sp"></div>
+
+      <!-- 歷史操作 -->
+      <button id="undoBtn" class="btn-icon" title="復原 (Ctrl+Z)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+      </button>
+      <button id="redoBtn" class="btn-icon" title="重做 (Ctrl+Y)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"/></svg>
+      </button>
+
+      <div class="divider"></div>
+
+      <!-- UG 轉換 -->
+      <button id="ugConvertBtn" class="btn-icon desktop-only-icon" title="UG 轉 ChordPro（將貼上的 Ultimate Guitar 格式轉為 ChordPro 格式）">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>
+      </button>
+
+      <div class="divider desktop-only-icon"></div>
+
+      <!-- 檔案操作 -->
+      <button id="newBtn" class="btn-icon desktop-only-icon" title="新建">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+      </button>
+      <button id="importUrlBtn" class="btn-icon desktop-only-icon" title="從網址導入">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+        </svg>
+      </button>
+      <button id="importBtn" class="btn-icon desktop-only-icon" title="載入">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+        </svg>
+      </button>
+      <input id="importFile" type="file" accept=".txt,.gtab" class="hidden" />
+      <button id="exportBtn" class="btn-icon desktop-only-icon" title="匯出">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+        </svg>
+      </button>
+      <button id="saveBtn" class="btn-icon" title="儲存">
+        <svg role="img" xmlns="http://www.w3.org/2000/svg" width="48px" height="48px" viewBox="0 0 24 24" aria-labelledby="saveIconTitle" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" color="currentColor">
+          <path d="M17.2928932,3.29289322 L21,7 L21,20 C21,20.5522847 20.5522847,21 20,21 L4,21 C3.44771525,21 3,20.5522847 3,20 L3,4 C3,3.44771525 3.44771525,3 4,3 L16.5857864,3 C16.8510029,3 17.1053568,3.10535684 17.2928932,3.29289322 Z" />
+          <rect width="10" height="8" x="7" y="13" />
+          <rect width="8" height="5" x="8" y="3" />
+        </svg>
+      </button>
+
+      <!-- 危險操作（桌面）-->
+      <div class="divider desktop-only-icon"></div>
+      <button id="clearBtn" class="btn-icon danger desktop-only-icon" title="從樂譜庫刪除此樂譜">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+        </svg>
+      </button>
+
+      <!-- 手機：更多選項 -->
+      <button id="editorMobileSettingsBtn" class="btn-icon mobile-only" title="更多">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+        </svg>
+      </button>
+    </header>
+
+    <main class="wrap">
+      <div class="editor-layout">
+        <!-- 左側工具欄 -->
+        <div class="left-sidebar">
+          <!-- 歌曲資訊 -->
+          <div class="panel">
+            <div class="panel-header">歌曲資訊</div>
+            <div class="panel-content">
+              <div class="form-group">
+                <label class="form-label">歌曲名稱</label>
+                <input
+                  id="songTitle"
+                  class="input"
+                  type="text"
+                  placeholder=""
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">演唱者</label>
+                <input
+                  id="songArtist"
+                  class="input"
+                  type="text"
+                  placeholder=""
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">標籤</label>
+                <input
+                  id="songTags"
+                  class="input"
+                  type="text"
+                  placeholder="以逗號分隔"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">調性</label>
+                <select id="songKey" class="select">
+                  <option value="">選擇調性</option>
+                  <option value="C">C</option>
+                  <option value="C#">C#</option>
+                  <option value="D♭">D♭</option>
+                  <option value="D">D</option>
+                  <option value="D#">D#</option>
+                  <option value="E♭">E♭</option>
+                  <option value="E">E</option>
+                  <option value="F">F</option>
+                  <option value="F#">F#</option>
+                  <option value="G♭">G♭</option>
+                  <option value="G">G</option>
+                  <option value="G#">G#</option>
+                  <option value="A♭">A♭</option>
+                  <option value="A">A</option>
+                  <option value="A#">A#</option>
+                  <option value="B♭">B♭</option>
+                  <option value="B">B</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">BPM</label>
+                <input
+                  id="songBpm"
+                  class="input"
+                  type="number"
+                  placeholder="120"
+                  min="60"
+                  max="200"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Capo</label>
+                <input
+                  id="songCapo"
+                  class="input"
+                  type="number"
+                  placeholder="0"
+                  min="-2"
+                  max="12"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">封面圖片</label>
+                <input
+                  id="songImg"
+                  class="input"
+                  type="url"
+                  placeholder="請輸入連結"
+                />
+              </div>
+              <button
+                id="updateMetaBtn"
+                class="btn primary w-100"
+              >
+                更新資訊
+              </button>
+              <button type="button" id="editorHelpBtn" class="editor-help-link">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="12" height="12"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" /></svg>
+                語法說明
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 主編輯區域 -->
+        <div id="editorView" class="editor">
+          <textarea
+            id="editorTextarea"
+            class="editor-textarea"
+          ></textarea>
+        </div>
+
+        <!-- 右側工具 -->
+        <div class="right-sidebar">
+          <!-- 段落工具 -->
+          <div class="panel">
+            <div class="panel-header">段落工具</div>
+            <div class="panel-content">
+              <div class="section-grid" id="sectionGrid"></div>
+            </div>
+          </div>
+
+          <!-- 常用和弦 -->
+          <div class="panel">
+            <div class="panel-header">常用和弦</div>
+            <div class="panel-content">
+              <div class="chord-grid" id="chordGrid"></div>
+            </div>
+          </div>
+
+          <!-- 自訂和弦 -->
+          <div class="panel">
+            <div class="panel-header">自訂和弦</div>
+            <div class="panel-content">
+              <div class="form-group">
+                <input
+                  id="customChordName"
+                  class="input w-100"
+                  type="text"
+                  placeholder="和弦名稱"
+                />
+              </div>
+              <div class="form-group">
+                <div id="fingeringDiagramWrap" class="fingering-diagram-wrap">
+                  <div id="fingeringDiagram" class="fingering-diagram"></div>
+                  <div class="start-fret-wrap" title="起始品格">
+                    <button type="button" id="startFretUp" class="start-fret-btn" aria-label="品格+1">
+                      <svg class="start-fret-icon" viewBox="0 0 12 8" width="12" height="8" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6 L6 2 L10 6"/></svg>
+                    </button>
+                    <span id="startFretValue" class="start-fret-value">1</span>
+                    <button type="button" id="startFretDown" class="start-fret-btn" aria-label="品格-1">
+                      <svg class="start-fret-icon" viewBox="0 0 12 8" width="12" height="8" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 2 L6 6 L10 2"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div id="addChordError" class="add-chord-error" aria-live="polite"></div>
+              <button
+                id="addCustomChordBtn"
+                class="btn primary w-100 mb-3"
+              >
+                新增自訂和弦
+              </button>
+              <div class="form-group">
+                <div class="chord-grid" id="customChordGrid"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 語法說明彈窗 -->
+    <div id="editorHelpModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h3 class="modal-title">語法說明</h3>
+        <div class="modal-body">
+          <div class="editor-help-section">
+            <h4>和弦</h4>
+            <p>在歌詞中插入 <code>[和弦名]</code> 標記和弦出現的位置。</p>
+            <p>例：<code>[C]</code><code>[Am]</code><code>[G7]</code></p>
+          </div>
+          <div class="editor-help-section">
+            <h4>段落</h4>
+            <p>用 <code>[段落名]</code> 獨立一行，作為段落分隔。</p>
+            <p>例：<code>[intro]</code><code>[verse]</code><code>[chorus]</code></p>
+          </div>
+          <div class="editor-help-section">
+            <h4>自訂指法</h4>
+            <p>用 <code>@和弦名: 1弦,2弦,3弦,4弦,5弦,6弦</code> 自定義指法。</p>
+            <p><code>0</code> 表示空弦，<code>-1</code> 表示不彈。</p>
+            <p>例：<code>@C: 0,3,2,0,1,0</code><code>@Asus2: 0,0,2,2,0,0</code></p>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button id="editorHelpClose" class="btn primary">關閉</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 手機版設定彈窗 -->
+    <div id="editorMobileSettingsModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-body editor-settings-modal-body">
+          <button id="modalImportUrlBtn" class="btn">從連結導入</button>
+          <button id="modalImportBtn" class="btn">從本地導入</button>
+          <button id="modalExportBtn" class="btn">導出到本地</button>
+          <button id="modalNewBtn" class="btn">新建</button>
+          <button id="modalUgConvertBtn" class="btn">UG 轉 ChordPro</button>
+          <button id="modalClearBtn" class="btn danger">刪除樂譜</button>
+        </div>
+        <div class="modal-footer">
+          <button id="editorMobileSettingsCancel" class="btn primary">
+            關閉
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initEditor } from "/modules/editor/ui.js";
+      initEditor();
+    </script>
+  </body>
+</html>

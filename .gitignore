@@ -5,3 +5,9 @@ debug_no_variable_*.html
 node_modules/
 dist/
 build/
+
+# Android 建置產物（www 由 npm run build:android-www 自動產生）
+www/
+
+# 樂譜資料（個人資料，不納入版控）
+sheets/

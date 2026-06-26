@@ -330,6 +330,8 @@
       </div>
     </div>
 
+    <!-- Android 橋接層：在 Electron 環境不會作用 -->
+    <script src="/modules/capacitor-bridge.js"></script>
     <script type="module">
       import { initEditor } from "/modules/editor/ui.js";
       initEditor();

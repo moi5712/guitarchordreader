@@ -17,6 +17,9 @@
     "build:win-unsigned": "set CSC_IDENTITY_AUTO_DISCOVERY=false&& electron-builder --win dir && node scripts/embed-win-icon.js && electron-builder --prepackaged dist/win-unpacked --win nsis",
     "build:mac": "electron-builder --mac",
     "build": "electron-builder",
+    "build:android-www": "node scripts/build-android-www.js",
+    "build:android": "node scripts/build-android-www.js && npx cap sync android",
+    "android:open": "npx cap open android",
     "test": "echo \"No tests specified\" && exit 0"
   },
   "keywords": [
@@ -33,6 +36,11 @@
     "node": ">=12.0.0"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/filesystem": "^8.1.2",
+    "@capacitor/preferences": "^8.0.1",
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {

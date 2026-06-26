@@ -1,0 +1,14 @@
+node_modules
+electron
+scripts
+_asar_extract
+dist
+build
+sheets
+docs
+.cursor
+.git
+*.bat
+*.vbs
+*.md
+package-lock.json

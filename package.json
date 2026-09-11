@@ -18,10 +18,13 @@
     "build:win-unsigned": "set CSC_IDENTITY_AUTO_DISCOVERY=false&& electron-builder --win dir && node scripts/embed-win-icon.js && electron-builder --prepackaged dist/win-unpacked --win nsis",
     "build:mac": "electron-builder --mac",
     "build": "electron-builder",
-    "build:pages": "node scripts/build-github-pages.js",
     "build:android-www": "node scripts/build-android-www.js",
     "build:android": "node scripts/build-android-www.js && npx cap sync android",
     "android:open": "npx cap open android",
+    "cf:build": "node scripts/build-cf-dist.js",
+    "cf:dev": "node scripts/build-cf-dist.js && wrangler dev",
+    "cf:deploy": "node scripts/build-cf-dist.js && wrangler deploy",
+    "cf:seed": "node scripts/export-sheets-sql.js",
     "test": "echo \"No tests specified\" && exit 0"
   },
   "keywords": [
@@ -51,7 +54,8 @@
     "electron-builder": "^24.9.1",
     "rcedit": "^4.0.1",
     "sharp": "^0.33.5",
-    "to-ico": "^1.1.5"
+    "to-ico": "^1.1.5",
+    "wrangler": "^4.131.0"
   },
   "build": {
     "appId": "com.guitar-sheet-reader.editor",
@@ -80,7 +84,10 @@
       "!modules/server/routes.js",
       "!scripts/**",
       "!.gitignore",
-      "!**/*.md"
+      "!**/*.md",
+      "!cloudflare",
+      "!.cf-dist",
+      "!wrangler.jsonc"
     ],
     "win": {
       "target": "nsis",

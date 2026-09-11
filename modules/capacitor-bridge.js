@@ -1,32 +1,22 @@
 /**
  * capacitor-bridge.js
- * 為 Android (Capacitor) 與靜態網頁（GitHub Pages）提供 window.electronAPI。
+ * 為 Android (Capacitor) 環境提供 window.electronAPI 介面。
  * 以 IndexedDB 取代 Node.js 檔案系統，以 localStorage 儲存書籤與設定。
  *
  * 若 window.electronAPI 已存在（Electron 桌面版），此腳本不做任何事。
- * localhost 上的 Node 伺服器不要啟用，以免蓋掉 HTTP / SQLite 樂譜庫。
  */
 (function () {
   if (typeof window === 'undefined' || window.electronAPI) return;
 
+  // 只在真正的 Capacitor App（Android WebView）啟用。
+  // 瀏覽器也會載入此腳本；若未判斷就會蓋掉 HTTP / SQLite 樂譜庫。
   var cap = window.Capacitor;
   var isNative = !!(cap && (
     typeof cap.isNativePlatform === 'function'
       ? cap.isNativePlatform()
       : cap.isNative
   ));
-  var isGithubPages = /\.github\.io$/i.test(location.hostname);
-  var isFile = location.protocol === 'file:';
-  var isStaticWeb = isGithubPages || isFile;
-  if (!isNative && !isStaticWeb) return;
-
-  function getBasePath() {
-    if (isGithubPages) {
-      var segs = location.pathname.split('/').filter(Boolean);
-      if (segs[0] && !/\.html?$/i.test(segs[0])) return '/' + segs[0];
-    }
-    return '';
-  }
+  if (!isNative) return;
 
   // ─── IndexedDB 初始化 ───────────────────────────────────────────────────────
   const DB_NAME = 'uchord-db';
@@ -127,8 +117,6 @@
   }
 
   // ─── 計算位元組長度 ─────────────────────────────────────────────────────────
-  var didTrySeed = false;
-
   function byteLength(str) {
     try { return new TextEncoder().encode(str).length; }
     catch (e) { return str.length; }
@@ -140,7 +128,6 @@
     /** 取得所有樂譜列表 */
     getSheets: async function () {
       try {
-        await seedWelcomeIfEmpty();
         var sheets = await dbGetAll();
         var bookmarks = getBookmarkList();
         sheets = sheets.map(function (s) {
@@ -156,23 +143,21 @@
       }
     },
 
-    /** 回傳樂譜儲存位置 */
+    /** 回傳樂譜儲存位置（Android 顯示用） */
     getSheetsPath: async function () {
-      return isNative ? '裝置內部儲存（App 私有空間）' : '瀏覽器本機儲存';
+      return '裝置內部儲存（App 私有空間）';
     },
 
-    /** 靜態站／Android 不支援從資料夾匯入 */
+    /** Android 不支援從資料夾匯入 */
     selectSheetsFolder: async function () {
-      alert(isNative
-        ? 'Android 版不支援從資料夾匯入。\n樂譜儲存於 App 私有空間，以保護資料安全。'
-        : '線上網頁版不支援從資料夾匯入。\n請改用「載入樂譜」選擇 .gtab / .txt 檔。');
-      return { success: false, canceled: true, path: isNative ? '裝置內部儲存' : '瀏覽器本機儲存' };
+      alert('Android 版不支援從資料夾匯入。\n樂譜儲存於 App 私有空間，以保護資料安全。');
+      return { success: false, canceled: true, path: '裝置內部儲存' };
     },
 
-    /** 靜態站／Android 不支援開啟資料夾 */
+    /** Android 不支援開啟資料夾 */
     openSheetsFolder: async function () {
-      alert(isNative ? 'Android 版不支援開啟資料夾。' : '線上網頁版不支援開啟資料夾。');
-      return isNative ? '裝置內部儲存' : '瀏覽器本機儲存';
+      alert('Android 版不支援開啟資料夾。');
+      return '裝置內部儲存';
     },
 
     /** Android 不支援在資料夾中顯示 */
@@ -248,18 +233,16 @@
       return { success: true };
     },
 
-    /** 從 URL 導入（靜態站受 CORS 限制） */
+    /** 從 URL 導入（Android 版暫不支援，受 CORS 限制） */
     importFromUrl: async function () {
-      alert(isNative
-        ? '從網址導入功能在 Android 版暫不支援。\n請改用「載入樂譜」從裝置上的 .gtab / .txt 檔案導入。'
-        : '從網址導入需要後端代抓，線上網頁版無法使用。\n請改用「載入樂譜」選擇 .gtab / .txt 檔。');
-      return { success: false, error: '此版本不支援從網址導入' };
+      alert('從網址導入功能在 Android 版暫不支援。\n請改用「載入樂譜」從裝置上的 .gtab / .txt 檔案導入。');
+      return { success: false, error: 'Android 版不支援從 URL 導入' };
     },
 
     /** 取得和弦指法資料 */
     getChordFingerings: async function () {
       try {
-        var resp = await fetch(getBasePath() + '/chords.json');
+        var resp = await fetch('/chords.json');
         if (resp.ok) return await resp.json();
       } catch (e) {
         console.warn('[Bridge] 載入 chords.json 失敗:', e);
@@ -267,41 +250,11 @@
       return {};
     },
 
-    /** 取得和弦檔路徑 */
+    /** 取得和弦檔路徑（Android 顯示用） */
     getChordsFilePath: async function () {
-      return isNative ? 'Android 內建 (chords.json)' : 'chords.json';
+      return 'Android 內建 (chords.json)';
     },
   };
 
-  async function seedWelcomeIfEmpty() {
-    if (didTrySeed) return;
-    didTrySeed = true;
-    try {
-      var existing = await dbGetAll();
-      if (existing.length) return;
-      var resp = await fetch(getBasePath() + '/examples/welcome.gtab');
-      if (!resp.ok) return;
-      var text = await resp.text();
-      var meta = parseSheetMeta(text);
-      var now = Date.now();
-      await dbPut({
-        filename: 'welcome.gtab',
-        content: text,
-        title: meta.title || '歡迎使用',
-        artist: meta.artist || '',
-        key: meta.key || '',
-        bpm: meta.bpm || '',
-        capo: meta.capo || '',
-        tags: meta.tags || [],
-        image: meta.image || '',
-        lastModified: now,
-        addedDate: now,
-        size: byteLength(text),
-      });
-    } catch (e) {
-      console.warn('[Bridge] 種入範例樂譜失敗:', e);
-    }
-  }
-
-  console.log(isNative ? '[u-chord] Android 橋接層已載入' : '[u-chord] 瀏覽器樂譜庫橋接層已載入');
+  console.log('[u-chord] Android 橋接層已載入');
 })();

@@ -5,7 +5,6 @@ debug_no_variable_*.html
 node_modules/
 dist/
 build/
-.pages-dist/
 
 # Android 建置產物（www 由 npm run build:android-www 自動產生）
 www/
@@ -13,3 +12,8 @@ www/
 # 樂譜資料（個人資料，不納入版控）
 sheets/
 data/
+
+# Cloudflare Worker 建置產物與本機狀態
+.cf-dist/
+.wrangler/
+cloudflare/seed.sql

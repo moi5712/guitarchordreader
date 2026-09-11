@@ -1,7 +1,8 @@
-# u-chord｜吉他譜閱讀器
+# u-chord｜吉他譜閱讀器・編輯器
 
-線上使用：https://moi5712.github.io/guitarchordreader/
+線上版：**https://guitar-chord-reader.fish205712.workers.dev**
 
-樂譜會存在你的瀏覽器裡，可閱讀、編輯與載入 `.gtab` / `.txt`。從網址導入（ufret）需要本機或桌面版後端，線上版無法使用。
+手機或電腦瀏覽器直接開即可使用，樂譜存在 Cloudflare D1，各裝置同步同一份資料。
+也可以在本機跑 Node 伺服器或安裝 Electron 桌面版。
 
-本機開發與打包說明見 [docs/README.md](docs/README.md)，部署說明見 [docs/DEPLOY.md](docs/DEPLOY.md)。
+開發與使用說明見 [docs/README.md](docs/README.md)，部署說明見 [docs/DEPLOY.md](docs/DEPLOY.md)。

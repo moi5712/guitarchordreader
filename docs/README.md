@@ -33,13 +33,12 @@
 
 桌面版**不啟動 HTTP 伺服器**，所有 API 改由 Electron 主行程透過 IPC 處理，因此不佔用本機連接埠；網址導入由主行程代為請求並寫檔。
 
-### 方式三：GitHub Pages（線上網頁）
+### 方式三：線上版（Cloudflare Workers）
 
-推送到 `main` 後會自動部署：
+**https://guitar-chord-reader.fish205712.workers.dev**
 
-**https://moi5712.github.io/guitarchordreader/**
-
-樂譜存在瀏覽器本機（IndexedDB），可閱讀與編輯。從網址導入需後端，線上版不可用。說明見 [DEPLOY.md](DEPLOY.md)。
+手機或任何瀏覽器都能直接開，樂譜存在 Cloudflare D1（雲端 SQLite），各裝置看到的是同一份資料。
+功能與本機版相同，包含儲存、刪除、書籤與網址導入。部署方式見 [DEPLOY.md](DEPLOY.md)。
 
 ---
 
@@ -81,6 +80,8 @@
 │   ├── components/
 │   └── ...
 ├── assets/             # 圖示、圖片
+├── cloudflare/         # 線上版 Worker：worker.js（/api + D1）、ufret.js、migrations/
+├── wrangler.jsonc      # Worker 與 D1 綁定設定
 ├── scripts/
 │   └── build-win.js    # 建置前解除 app-builder 封鎖並執行 electron-builder
 ├── docs/               # 說明文件

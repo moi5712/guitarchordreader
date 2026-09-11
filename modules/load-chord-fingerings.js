@@ -1,5 +1,4 @@
 import { setDefaultChordFingerings } from "./chord-fingerings-store.js";
-import { assetUrl } from "./config/paths.js";
 
 function normalizeChordFingerings(raw) {
   const out = Object.create(null);
@@ -20,7 +19,7 @@ let loadPromise = null;
 
 /**
  * 載入和弦指法庫：Electron 從 userData/chords.json（主程序複製種子檔）；
- * 瀏覽器／本機伺服器從 chords.json 取得。
+ * 瀏覽器／本機伺服器從 /chords.json 取得。
  */
 export function loadChordFingerings() {
   if (loadPromise) return loadPromise;
@@ -31,7 +30,7 @@ export function loadChordFingerings() {
         setDefaultChordFingerings(normalizeChordFingerings(data));
         return;
       }
-      const res = await fetch(assetUrl("/chords.json"), { cache: "no-store" });
+      const res = await fetch("/chords.json", { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setDefaultChordFingerings(normalizeChordFingerings(data));

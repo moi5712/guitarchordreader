@@ -2,13 +2,13 @@
   "name": "吉他譜閱讀器｜編輯器",
   "short_name": "u-chord",
   "description": "ChordPro 吉他譜管理、閱讀與編輯",
-  "start_url": "./",
+  "start_url": "/",
   "display": "standalone",
   "orientation": "any",
   "lang": "zh-Hant",
   "icons": [
     {
-      "src": "assets/favicon.svg",
+      "src": "/assets/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"

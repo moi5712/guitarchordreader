@@ -20,7 +20,6 @@ const COPY_TARGETS = [
   'manifest.webmanifest',
   'assets',
   'fonts',
-  'examples',
   'modules',
 ];
 

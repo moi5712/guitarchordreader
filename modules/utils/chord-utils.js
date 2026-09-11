@@ -128,7 +128,8 @@ export function detectBarres(fingering, startFret, endFret) {
 export function createChordDiagram(chord, options = {}) {
     const { 
       transposeValue = 0, 
-      customChordFingerings = {}
+      customChordFingerings = {},
+      scale = 1,
     } = options;
     
     const transposedChord = transposeChord(chord, transposeValue);
@@ -162,8 +163,11 @@ export function createChordDiagram(chord, options = {}) {
   
     const { width, baseHeight, fretHeight, stringSpacing, fretStartY } = SCORE_CONFIG.chordDiagram;
     const height = baseHeight + (numFrets - 5) * fretHeight;
+    const safeScale = Math.min(1.6, Math.max(0.5, Number(scale) || 1));
+    const displayWidth = +(width * safeScale).toFixed(2);
+    const displayHeight = +(height * safeScale).toFixed(2);
   
-    let svg = `<svg width="${width}" height="${height}" class="chord-diagram chord-diagram-inline">`;
+    let svg = `<svg width="${displayWidth}" height="${displayHeight}" viewBox="0 0 ${width} ${height}" class="chord-diagram chord-diagram-inline">`;
     svg += `<text x="${width/2-2}" y="14" text-anchor="middle" font-size="16" font-weight="bold" fill="#333" class="chord-diagram-title">${transposedChord}</text>`;//和弦文字
   
     if (startFret > 1) {

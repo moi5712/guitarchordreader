@@ -60,9 +60,15 @@
       <div class="divider"></div>
 
       <!-- UG 轉換 -->
-      <button id="ugConvertBtn" class="btn-icon desktop-only-icon" title="UG 轉 ChordPro（將貼上的 Ultimate Guitar 格式轉為 ChordPro 格式）">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>
-      </button>
+      <div class="topbar-ug-group desktop-only-icon">
+        <button id="ugConvertBtn" class="btn-icon" title="轉換樂譜">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>
+        </button>
+        <label class="btn-icon topbar-toggle-btn" for="ugAutoAlign" title="自動對齊">
+          <input id="ugAutoAlign" type="checkbox" class="topbar-toggle-input" checked />
+          <span>對齊音節</span>
+        </label>
+      </div>
 
       <div class="divider desktop-only-icon"></div>
 
@@ -217,6 +223,7 @@
 
         <!-- 主編輯區域 -->
         <div id="editorView" class="editor">
+          <div id="ugAlignWarnings" class="ug-align-warnings hidden" hidden></div>
           <textarea
             id="editorTextarea"
             class="editor-textarea"
@@ -319,7 +326,11 @@
           <button id="modalImportBtn" class="btn">從本地導入</button>
           <button id="modalExportBtn" class="btn">導出到本地</button>
           <button id="modalNewBtn" class="btn">新建</button>
-          <button id="modalUgConvertBtn" class="btn">UG 轉 ChordPro</button>
+          <button id="modalUgConvertBtn" class="btn" title="轉換樂譜">轉換樂譜</button>
+          <label class="ug-auto-align-label modal-ug-align" title="自動對齊">
+            <input type="checkbox" id="modalUgAutoAlign" checked />
+            對齊音節
+          </label>
           <button id="modalClearBtn" class="btn danger">刪除樂譜</button>
         </div>
         <div class="modal-footer">

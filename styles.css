@@ -116,6 +116,10 @@ body {
   display: none !important;
 }
 
+#mobileSettingsBtn {
+  display: none !important;
+}
+
 .desktop-only {
   display: flex;
 }
@@ -169,6 +173,77 @@ body {
   justify-content: flex-end;
 }
 
+html.topbar-compact .topbar.is-measuring .topbar-right .topbar-desktop-only,
+.topbar.is-measuring .topbar-desktop-only {
+  display: flex !important;
+  visibility: hidden !important;
+  position: absolute !important;
+  pointer-events: none !important;
+  left: 0;
+  top: 0;
+}
+
+html.topbar-compact .topbar.is-measuring #mobileSettingsBtn,
+.topbar.is-measuring #mobileSettingsBtn {
+  display: none !important;
+}
+
+html.topbar-compact .topbar-right .topbar-desktop-only {
+  display: none !important;
+}
+
+html.topbar-compact #mobileSettingsBtn {
+  display: flex !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+html.topbar-compact .mobile-sheet {
+  display: block;
+}
+
+html.topbar-compact .mobile-sheet-backdrop {
+  background: transparent;
+  left: 8px;
+  right: 8px;
+}
+
+html.topbar-compact .mobile-sheet-panel {
+  left: auto;
+  right: 8px;
+  top: calc(var(--topbar-height) + 8px);
+  bottom: auto;
+  width: min(420px, calc(100vw - 16px));
+  max-height: min(70vh, 560px);
+  border-radius: var(--radius-lg);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 12px;
+  transform: translateY(-8px);
+  opacity: 0;
+  box-shadow: none;
+}
+
+html.topbar-compact .mobile-sheet.is-open .mobile-sheet-panel {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+html.topbar-measured:not(.topbar-compact) .topbar-right .topbar-desktop-only {
+  display: flex !important;
+}
+
+html.topbar-measured:not(.topbar-compact) #mobileSettingsBtn {
+  display: none !important;
+}
+
+html.topbar-measured:not(.topbar-compact) .topbar .tiny {
+  display: inline;
+}
+
 .topbar-group {
   margin: 0;
   padding: 0;
@@ -214,7 +289,8 @@ body {
   pointer-events: none;
 }
 
-.topbar-controls .btn-icon.topbar-toggle-btn {
+.topbar-controls .btn-icon.topbar-toggle-btn,
+.topbar .btn-icon.topbar-toggle-btn {
   width: auto;
   min-width: 32px;
   min-height: 32px;
@@ -223,18 +299,21 @@ body {
   border-radius: var(--radius-md);
 }
 
-.topbar-controls .btn-icon.topbar-toggle-btn:has(.topbar-toggle-input:checked) {
+.topbar-controls .btn-icon.topbar-toggle-btn:has(.topbar-toggle-input:checked),
+.topbar .btn-icon.topbar-toggle-btn:has(.topbar-toggle-input:checked) {
   background: var(--brand);
   color: var(--on-brand);
 }
 
-.topbar-controls .btn-icon.topbar-toggle-btn:has(.topbar-toggle-input:checked):hover {
+.topbar-controls .btn-icon.topbar-toggle-btn:has(.topbar-toggle-input:checked):hover,
+.topbar .btn-icon.topbar-toggle-btn:has(.topbar-toggle-input:checked):hover {
   background: var(--brand);
   color: var(--on-brand);
   opacity: 0.9;
 }
 
-.topbar-controls .btn-icon.topbar-toggle-btn:has(.topbar-toggle-input:focus-visible) {
+.topbar-controls .btn-icon.topbar-toggle-btn:has(.topbar-toggle-input:focus-visible),
+.topbar .btn-icon.topbar-toggle-btn:has(.topbar-toggle-input:focus-visible) {
   outline: 2px solid color-mix(in srgb, var(--brand) 45%, transparent);
   outline-offset: 1px;
 }
@@ -912,7 +991,11 @@ a.btn:hover {
 }
 
 .meta {
-  padding: 32px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 240px;
+  padding: 32px 24px 24px;
   border-radius: 8px 8px 0 0;
   border-bottom: 1px solid var(--line);
 }
@@ -1638,6 +1721,67 @@ a.btn:hover {
 .editor-layout > .editor .editor-textarea {
   flex: 1;
   min-height: 0;
+}
+
+.ug-auto-align-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-sm);
+  color: var(--muted, var(--ink));
+  cursor: pointer;
+  user-select: none;
+}
+
+.ug-auto-align-label.modal-ug-align {
+  margin: 4px 0 8px;
+}
+
+.topbar-ug-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ug-align-warnings {
+  margin: 8px 12px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--brand) 8%, var(--card));
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+  max-height: 160px;
+  overflow: auto;
+}
+
+.ug-align-warnings.hidden,
+.ug-align-warnings[hidden] {
+  display: none;
+}
+
+.ug-align-warnings-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.ug-align-warnings ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.ug-align-warnings li {
+  margin: 2px 0;
+}
+
+.ug-align-warnings code {
+  font-family: var(--font-family-code);
+  font-size: 0.9em;
+}
+
+.ug-align-warnings-more {
+  margin-top: 6px;
+  color: var(--muted, var(--ink));
 }
 
 .editor {
@@ -2978,12 +3122,12 @@ body.editor-mode .wrap {
   }
   .topbar { gap: 8px; }
 
-  /* 1100 以下統一改用設定按鈕入口 */
-  .topbar-right .topbar-desktop-only {
+  /* 尚未量測前，中等寬度先收成設定按鈕，避免工具列溢出閃一下 */
+  html:not(.topbar-measured) .topbar-right .topbar-desktop-only {
     display: none !important;
   }
 
-  #mobileSettingsBtn {
+  html:not(.topbar-measured) #mobileSettingsBtn {
     display: flex !important;
     width: 32px !important;
     height: 32px !important;
@@ -2993,35 +3137,8 @@ body.editor-mode .wrap {
     flex-shrink: 0;
   }
 
-  .mobile-sheet {
+  html:not(.topbar-measured) .mobile-sheet {
     display: block;
-  }
-
-  /* 640-1100：設定面板使用按鈕下拉小選單 */
-  .mobile-sheet-backdrop {
-    background: transparent;
-    left: 8px;
-    right: 8px;
-  }
-
-  .mobile-sheet-panel {
-    left: auto;
-    right: 8px;
-    top: calc(var(--topbar-height) + 8px);
-    bottom: auto;
-    width: min(420px, calc(100vw - 16px));
-    max-height: min(70vh, 560px);
-    border-radius: var(--radius-lg);
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 12px;
-    transform: translateY(-8px);
-    opacity: 0;
-    box-shadow: none;
-  }
-
-  .mobile-sheet.is-open .mobile-sheet-panel {
-    transform: translateY(0);
-    opacity: 1;
   }
 
   .control-group {
@@ -3058,8 +3175,8 @@ body.editor-mode .wrap {
     padding: 0 16px 16px 16px;
   }
 
-  .wrap {
-    padding: calc(var(--topbar-height) + 8px) 8px 8px 8px;
+  .meta {
+    min-height: 200px;
   }
 
   .btn-icon {
@@ -3129,6 +3246,8 @@ body.editor-mode .wrap {
 
   .meta {
     border-radius: 0;
+    min-height: 168px;
+    padding: 24px 16px 20px;
   }
 
   .library-container {
@@ -3542,10 +3661,16 @@ body.editor-mode .wrap {
     height: 36px;
   }
 
-  #mobileSettingsSheet .control-step-btn {
+  #mobileSettingsSheet .control-step-btn,
+  #mobileSettingsSheet .control-reset-btn {
     min-width: 36px;
     width: 36px;
     height: 32px;
+  }
+
+  #mobileSettingsSheet .control-reset-btn svg {
+    width: 16px;
+    height: 16px;
   }
 
   .modal-body .form-group {

@@ -40,6 +40,20 @@
             />
             <button id="fontPxPlus" type="button" class="control-step-btn" title="放大字級" aria-label="放大字級">+</button>
           </div>
+          <label class="tiny" for="fingeringSize" title="指法圖大小，5 為原始大小">指法圖</label>
+          <div class="control-group">
+            <button id="fingeringSizeMinus" type="button" class="control-step-btn" title="縮小指法圖" aria-label="縮小指法圖">−</button>
+            <input
+              id="fingeringSize"
+              class="control-value"
+              type="number"
+              value="5"
+              min="1"
+              max="10"
+              aria-label="指法圖等級"
+            />
+            <button id="fingeringSizePlus" type="button" class="control-step-btn" title="放大指法圖" aria-label="放大指法圖">+</button>
+          </div>
           <label class="tiny" for="lineGap">行距</label>
           <div class="control-group">
             <button id="lineGapMinus" type="button" class="control-step-btn" title="縮小行距" aria-label="縮小行距">−</button>
@@ -256,6 +270,14 @@
             </div>
           </div>
           <div class="mobile-sheet-row">
+            <span class="mobile-sheet-label">指法圖</span>
+            <div class="control-group">
+              <button id="mobileFingeringSizeMinus" type="button" class="control-step-btn" aria-label="縮小指法圖">−</button>
+              <span id="mobileSheetFingeringSize" class="control-value control-value--display">5</span>
+              <button id="mobileFingeringSizePlus" type="button" class="control-step-btn" aria-label="放大指法圖">+</button>
+            </div>
+          </div>
+          <div class="mobile-sheet-row">
             <span class="mobile-sheet-label">行距</span>
             <div class="control-group">
               <button id="mobileLineGapMinus" type="button" class="control-step-btn" aria-label="縮小行距">−</button>
@@ -269,6 +291,12 @@
               <button id="mobileTransposeMinus" type="button" class="control-step-btn" aria-label="降調">−</button>
               <span id="mobileSheetTranspose" class="control-value control-value--display">0</span>
               <button id="mobileTransposePlus" type="button" class="control-step-btn" aria-label="升調">+</button>
+              <button id="mobileTransposeReset" type="button" class="control-reset-btn" title="恢復樂譜預設變調" aria-label="恢復樂譜預設變調">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                </svg>
+              </button>
             </div>
           </div>
           <div class="mobile-sheet-row mobile-sheet-row--toggle">
@@ -282,6 +310,12 @@
               <button id="mobileBpmMinus" type="button" class="control-step-btn" aria-label="減慢 BPM">−</button>
               <span id="mobileSheetBpm" class="control-value control-value--display">120</span>
               <button id="mobileBpmPlus" type="button" class="control-step-btn" aria-label="加快 BPM">+</button>
+              <button id="mobileBpmReset" type="button" class="control-reset-btn" title="恢復樂譜預設速度" aria-label="恢復樂譜預設速度">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                </svg>
+              </button>
             </div>
           </div>
           <div class="mobile-sheet-row mobile-sheet-row--toggle">

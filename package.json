@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node modules/server.js",
     "dev": "node modules/server.js",
-    "dev:appdata": "node -e \"process.env.SHEETS_DIR=require('path').join(process.env.APPDATA||'','guitar-sheet-reader-editor','sheets');require('./modules/server.js')\"",
+    "migrate": "node scripts/migrate-sheets-to-db.js",
+    "dev:appdata": "node -e \"process.env.SHEETS_DB=require('path').join(process.env.APPDATA||'','guitar-sheet-reader-editor','sheets.db');require('./modules/server.js')\"",
     "electron": "electron .",
     "icons:build": "node scripts/generate-app-icon.js",
     "prebuild:win": "node scripts/generate-app-icon.js",
@@ -41,6 +42,7 @@
     "@capacitor/core": "^8.4.1",
     "@capacitor/filesystem": "^8.1.2",
     "@capacitor/preferences": "^8.0.1",
+    "better-sqlite3": "^13.0.3",
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {
@@ -66,6 +68,7 @@
       "!.git*",
       "!dist",
       "!build",
+      "!data",
       "!啟動.vbs",
       "!啟動.bat",
       "!README.md",
@@ -91,6 +94,9 @@
       "createStartMenuShortcut": true
     },
     "forceCodeSigning": false,
+    "asarUnpack": [
+      "node_modules/better-sqlite3/**"
+    ],
     "extraResources": [
       {
         "from": "build/icon.png",

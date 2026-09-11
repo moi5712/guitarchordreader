@@ -33,15 +33,103 @@ export function syncTopbarHeight(root = document.documentElement) {
     root.style.setProperty("--topbar-height", `${topbar.offsetHeight}px`);
 }
 
-export function observeTopbarHeight() {
+function parseFlexGap(el) {
+    const raw = getComputedStyle(el).gap || getComputedStyle(el).columnGap || "0";
+    const n = parseFloat(raw);
+    return Number.isFinite(n) ? n : 0;
+}
+
+function isTopbarMeasureSkip(el) {
+    if (!(el instanceof HTMLElement)) return true;
+    if (el.hidden || el.classList.contains("hidden")) return true;
+    if (el.id === "mobileSettingsBtn" || el.id === "importFile") return true;
+    if (el.getAttribute("type") === "file") return true;
+    return false;
+}
+
+function sumFlexChildrenWidth(el) {
+    const gap = parseFlexGap(el);
+    let width = 0;
+    let count = 0;
+    for (const child of el.children) {
+        if (isTopbarMeasureSkip(child)) continue;
+        const w = child.offsetWidth;
+        if (w <= 0) continue;
+        width += w;
+        count += 1;
+    }
+    if (count > 1) width += (count - 1) * gap;
+    return width;
+}
+
+function measureExpandedTopbarWidth(topbar) {
+    const style = getComputedStyle(topbar);
+    const pad = (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0);
+    const gap = parseFlexGap(topbar);
+    let used = pad;
+    let count = 0;
+    for (const child of topbar.children) {
+        if (isTopbarMeasureSkip(child)) continue;
+        const w = child.classList.contains("topbar-right")
+            ? sumFlexChildrenWidth(child)
+            : child.offsetWidth;
+        if (w <= 0) continue;
+        used += w;
+        count += 1;
+    }
+    if (count > 1) used += (count - 1) * gap;
+    return used;
+}
+
+function closeTopbarOverflowSheet() {
+    const sheet = document.getElementById("mobileSettingsSheet");
+    if (!sheet?.classList.contains("is-open")) return;
+    sheet.classList.remove("is-open");
+    sheet.setAttribute("aria-hidden", "true");
+    document.getElementById("mobileSettingsBtn")?.setAttribute("aria-expanded", "false");
+}
+
+export function syncTopbarOverflow(topbar = document.querySelector(".topbar")) {
+    if (!topbar || topbar.dataset.topbarMeasuring === "1") return;
+    topbar.dataset.topbarMeasuring = "1";
+    topbar.classList.add("is-measuring");
+    const needed = measureExpandedTopbarWidth(topbar);
+    const available = topbar.clientWidth;
+    topbar.classList.remove("is-measuring");
+    topbar.dataset.topbarMeasuring = "";
+    const compact = Math.ceil(needed) > available;
+    const html = document.documentElement;
+    const wasCompact = html.classList.contains("topbar-compact");
+    html.classList.toggle("topbar-compact", compact);
+    html.classList.add("topbar-measured");
+    topbar.classList.toggle("is-compact", compact);
+    if (wasCompact && !compact) closeTopbarOverflowSheet();
     syncTopbarHeight();
+}
+
+export function observeTopbarHeight() {
     const topbar = document.querySelector(".topbar");
+    syncTopbarHeight();
+    syncTopbarOverflow(topbar);
     if (!topbar) return;
+    let rafId = 0;
+    const schedule = () => {
+        if (topbar.dataset.topbarMeasuring === "1") return;
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => {
+            rafId = 0;
+            syncTopbarOverflow(topbar);
+        });
+    };
     if (typeof ResizeObserver !== "undefined") {
-        const ro = new ResizeObserver(() => syncTopbarHeight());
+        const ro = new ResizeObserver(schedule);
         ro.observe(topbar);
     }
-    window.addEventListener("resize", () => syncTopbarHeight());
+    window.addEventListener("resize", schedule);
+    window.visualViewport?.addEventListener("resize", schedule);
+    if (document.fonts?.ready) {
+        document.fonts.ready.then(schedule).catch(() => {});
+    }
 }
 
 // 顯示警告

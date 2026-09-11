@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain, protocol, shell, Menu, dialog } = require('
 const path = require('path');
 const fs = require('fs');
 const api = require('../modules/server/api.js');
+const store = require('../modules/server/sheet-store.js');
+const { migrateIfEmpty } = require('../modules/server/migrate.js');
 
 // 與 package.json build.appId 一致；Windows 工作列／捷徑才不會被當成泛用「Electron」
 if (process.platform === 'win32') {
@@ -61,50 +63,9 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { standard: true, secure: true, supportFetchAPI: true } }
 ]);
 
-// 開發時用專案內 sheets；安裝版用 userData，避免寫入安裝目錄（唯讀或權限不足）導致無法儲存
-function getSheetsDir() {
-  const root = app.isPackaged ? app.getPath('userData') : projectRoot;
-  const sheetsDir = path.join(root, 'sheets');
-  if (!fs.existsSync(sheetsDir)) {
-    fs.mkdirSync(sheetsDir, { recursive: true });
-  }
-  return sheetsDir;
-}
-
-function getLibraryPrefsPath(userData) {
-  return path.join(userData, 'library-prefs.json');
-}
-
-function readLibraryPrefs(userData) {
-  const prefsPath = getLibraryPrefsPath(userData);
-  if (!fs.existsSync(prefsPath)) return {};
-  try {
-    const raw = JSON.parse(fs.readFileSync(prefsPath, 'utf8'));
-    return raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
-  } catch (error) {
-    console.error('讀取 library-prefs.json 失敗:', error);
-    return {};
-  }
-}
-
-function writeLibraryPrefs(userData, prefs) {
-  const prefsPath = getLibraryPrefsPath(userData);
-  try {
-    fs.mkdirSync(path.dirname(prefsPath), { recursive: true });
-    fs.writeFileSync(prefsPath, JSON.stringify(prefs, null, 2), 'utf8');
-  } catch (error) {
-    console.error('寫入 library-prefs.json 失敗:', error);
-  }
-}
-
-function resolveSheetsDir(userData) {
-  const prefs = readLibraryPrefs(userData);
-  const preferredDir = typeof prefs.sheetsDir === 'string' ? prefs.sheetsDir.trim() : '';
-  const sheetsDir = preferredDir || getSheetsDir();
-  if (!fs.existsSync(sheetsDir)) {
-    fs.mkdirSync(sheetsDir, { recursive: true });
-  }
-  return sheetsDir;
+function getDbFilePath() {
+  const root = app.isPackaged ? app.getPath('userData') : path.join(projectRoot, 'data');
+  return path.join(root, 'sheets.db');
 }
 
 // 自訂 protocol：以專案根目錄提供檔案，使 /styles.css、/modules/... 等路徑可用
@@ -174,86 +135,69 @@ app.whenReady().then(() => {
   registerAppProtocol();
 
   const userData = app.getPath('userData');
-  let sheetsDir = resolveSheetsDir(userData);
-  const bookmarksPath = path.join(userData, 'bookmarks.json');
+  const dbFilePath = getDbFilePath();
+  store.openDatabase(dbFilePath);
+  const extraSources = [];
+  const userSheets = path.join(userData, 'sheets');
+  const userBookmarks = path.join(userData, 'bookmarks.json');
+  if (fs.existsSync(userSheets) || fs.existsSync(userBookmarks)) {
+    extraSources.push({ sheetsDir: userSheets, bookmarksFile: userBookmarks });
+  }
+  const migrated = migrateIfEmpty({ dbPath: dbFilePath, extraSources });
+  if (migrated && !migrated.skipped && migrated.imported > 0) {
+    console.log(`Migrated ${migrated.imported} sheets into ${dbFilePath}`);
+  }
 
   ipcMain.handle('api:getSheets', () => {
-    return api.getSheetsData(sheetsDir, bookmarksPath);
+    return api.getSheetsData();
   });
 
-  ipcMain.handle('api:getSheetsPath', () => sheetsDir);
-  ipcMain.handle('api:openSheetsFolder', () => shell.openPath(sheetsDir).then(() => sheetsDir));
+  ipcMain.handle('api:getSheetsPath', () => store.getDbPath());
+  ipcMain.handle('api:openSheetsFolder', () => {
+    const dir = path.dirname(store.getDbPath());
+    return shell.openPath(dir).then(() => dir);
+  });
   ipcMain.handle('api:selectSheetsFolder', async () => {
     try {
       const result = await dialog.showOpenDialog({
-        title: '選擇樂譜資料夾',
-        defaultPath: sheetsDir,
-        properties: ['openDirectory', 'createDirectory']
+        title: '從資料夾匯入樂譜',
+        properties: ['openDirectory']
       });
       if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
-        return { success: false, canceled: true, path: sheetsDir };
+        return { success: false, canceled: true, path: store.getDbPath() };
       }
       const selectedDir = result.filePaths[0];
-      fs.mkdirSync(selectedDir, { recursive: true });
-      sheetsDir = selectedDir;
-      writeLibraryPrefs(userData, { sheetsDir });
-      return { success: true, canceled: false, path: sheetsDir };
+      const imported = api.importFolder(selectedDir);
+      return {
+        success: true,
+        canceled: false,
+        path: store.getDbPath(),
+        imported: imported.imported,
+        bookmarks: imported.bookmarks
+      };
     } catch (error) {
       console.error('selectSheetsFolder error:', error);
-      return { success: false, canceled: false, error: error.message || String(error), path: sheetsDir };
+      return { success: false, canceled: false, error: error.message || String(error), path: store.getDbPath() };
     }
   });
 
   ipcMain.handle('api:saveSheet', (_, filename, content) => {
-    const fullPath = path.join(sheetsDir, path.basename(filename));
     try {
-      if (!fs.existsSync(sheetsDir)) {
-        fs.mkdirSync(sheetsDir, { recursive: true });
-      }
-      const testFile = path.join(sheetsDir, '.write-test');
-      try {
-        fs.writeFileSync(testFile, 'ok', 'utf8');
-        fs.unlinkSync(testFile);
-      } catch (testErr) {
-        return { success: false, error: '無法寫入樂譜資料夾：' + (testErr.message || testErr), path: sheetsDir };
-      }
-      api.saveSheet(sheetsDir, filename, content);
-      return { success: true, message: '檔案儲存成功', path: fullPath };
+      const saved = api.saveSheet(filename, content);
+      return { success: true, message: '檔案儲存成功', filename: saved, path: saved };
     } catch (err) {
       console.error('saveSheet error:', err);
-      return { success: false, error: err.message || String(err), path: sheetsDir };
+      return { success: false, error: err.message || String(err) };
     }
   });
 
-  ipcMain.handle('api:saveSheetAs', async (_, suggestedFilename, content) => {
+  ipcMain.handle('api:saveSheetAs', (_, suggestedFilename, content) => {
     try {
       const trimmedName = typeof suggestedFilename === 'string' ? suggestedFilename.trim() : '';
-      const safeBase = path.basename(trimmedName || '未命名.txt');
-      const hasValidExt = /\.(txt|gtab)$/i.test(safeBase);
-      const defaultName = hasValidExt ? safeBase : `${safeBase}.txt`;
-      const saveResult = await dialog.showSaveDialog({
-        title: '儲存樂譜',
-        defaultPath: path.join(sheetsDir, defaultName),
-        filters: [
-          { name: '吉他譜檔案', extensions: ['gtab', 'txt'] },
-          { name: '所有檔案', extensions: ['*'] }
-        ],
-        showOverwriteConfirmation: true
-      });
-
-      if (saveResult.canceled || !saveResult.filePath) {
-        return { success: false, canceled: true };
-      }
-
-      let filePath = saveResult.filePath;
-      const ext = path.extname(filePath).toLowerCase();
-      if (ext !== '.txt' && ext !== '.gtab') {
-        filePath += '.txt';
-      }
-
-      fs.mkdirSync(path.dirname(filePath), { recursive: true });
-      fs.writeFileSync(filePath, content, 'utf8');
-      return { success: true, path: filePath, filename: path.basename(filePath) };
+      const safeBase = path.basename(trimmedName || '未命名.gtab');
+      const filename = /\.(txt|gtab)$/i.test(safeBase) ? safeBase : `${safeBase}.gtab`;
+      const saved = api.saveSheet(filename, content);
+      return { success: true, filename: saved, path: saved };
     } catch (err) {
       console.error('saveSheetAs error:', err);
       return { success: false, error: err.message || String(err) };
@@ -272,21 +216,21 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle('api:deleteSheet', (_, filename) => {
-    api.deleteSheet(sheetsDir, filename);
+    api.deleteSheet(filename);
     return { success: true, message: '已從樂譜庫刪除' };
   });
 
   ipcMain.handle('api:getBookmarks', () => {
-    return api.getBookmarks(bookmarksPath);
+    return api.getBookmarks();
   });
 
   ipcMain.handle('api:setBookmark', (_, filename, bookmarked) => {
-    api.setBookmark(bookmarksPath, filename, bookmarked);
+    api.setBookmark(filename, bookmarked);
     return { success: true, message: '書籤更新成功' };
   });
 
   ipcMain.handle('api:importFromUrl', (_, urls) => {
-    return api.importFromUrl(sheetsDir, urls);
+    return api.importFromUrl(urls);
   });
 
   ipcMain.handle('api:getChordFingerings', () => readChordFingeringsFromDisk(userData));

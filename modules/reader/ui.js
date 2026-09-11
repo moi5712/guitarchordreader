@@ -3,13 +3,29 @@ import { createChordDiagram, transposeChord } from '../utils/chord-utils.js';
 import { SCORE_CONFIG } from '../config/score-config.js';
 import { importScore } from './data.js';
 
+function normalizeFingeringSize(size) {
+  const n = Number(size);
+  if (!Number.isFinite(n) || n <= 0) return 5;
+  if (n > 10) {
+    return Math.min(10, Math.max(1, Math.round((n - 40) / 12)));
+  }
+  return Math.min(10, Math.max(1, Math.round(n)));
+}
+
+function fingeringScaleFromSize(size) {
+  return Math.round((0.4 + normalizeFingeringSize(size) * 0.12) * 100) / 100;
+}
+
 function buildChordLine(lyrics, chords, options = {}) {
   const {
     showFingering = false,
     transposeValue = 0,
     customChordFingerings = {},
     chordFingerings = {},
+    fingeringSize = 5,
   } = options;
+
+  const diagramScale = fingeringScaleFromSize(fingeringSize);
 
   const getChordContent = (chord) => {
     if (showFingering) {
@@ -17,6 +33,7 @@ function buildChordLine(lyrics, chords, options = {}) {
         transposeValue,
         customChordFingerings,
         chordFingerings,
+        scale: diagramScale,
       });
     }
 
@@ -24,7 +41,9 @@ function buildChordLine(lyrics, chords, options = {}) {
     return `<span class="${SCORE_CONFIG.cssClasses.chordName}">${displayChord}</span>`;
   };
 
-  const chordBlockHeight = showFingering ? "75px" : "1.5em";
+  const chordBlockHeight = showFingering
+    ? `${Math.round(SCORE_CONFIG.chordDiagram.baseHeight * diagramScale)}px`
+    : "1.5em";
 
   const createBlock = (
     chordContent,
@@ -35,7 +54,7 @@ function buildChordLine(lyrics, chords, options = {}) {
       ? "lyric-content with-fingering"
       : "lyric-content";
     const chordSlot = showFingering
-      ? `<div class="chord-block-inner flex-wrap-end" style="height: ${blockChordHeight}">${chordContent}</div>`
+      ? `<div class="chord-block-inner flex-wrap-end" style="min-height: ${blockChordHeight}">${chordContent}</div>`
       : chordContent;
     return `<div class="flex-col-start">
       ${chordSlot}
@@ -102,6 +121,7 @@ export function render() {
     lineGap: +document.getElementById("lineGap").value || 14,
     transpose: +document.getElementById("transpose").value || 0,
     showFingering: document.getElementById("showFingering").checked,
+    fingeringSize: +document.getElementById("fingeringSize")?.value || 5,
     countdownEnabled: document.getElementById("countdownEnabled").checked,
     speed: +document.getElementById("speed").value || 30
   };
@@ -216,6 +236,7 @@ export function render() {
 
         lineContentSpan.innerHTML = buildChordLine(ln.lyrics, ln.chords, {
           showFingering: newSettings.showFingering,
+          fingeringSize: newSettings.fingeringSize,
           transposeValue: newSettings.transpose,
           customChordFingerings,
           chordFingerings: {}, // This was empty in the original code

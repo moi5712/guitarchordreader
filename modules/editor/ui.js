@@ -6,7 +6,7 @@ import { saveToHistory, undo, redo } from './history.js';
 import { insertChord, insertSection } from './textarea.js';
 import { addCustomChord, loadCustomChords, loadCustomChordsFromText, initFingeringDiagram } from './custom-chords.js';
 import { newDocument, exportDocument, importDocument, saveToSheetsFolder, importFromUrl, setCurrentFilename, getCurrentFilename, deleteSheetFromLibrary } from './io.js';
-import { convertUGToChordPro } from './ug-converter.js';
+import { convertUGToChordPro, collectAlignmentIssues } from './ug-converter.js';
 
 async function updateMetaInfo() {
     const title = document.getElementById("songTitle").value;
@@ -59,12 +59,57 @@ async function updateMetaInfo() {
     textarea.value = newContent;
 }
 
+function isAutoAlignEnabled() {
+    const desktop = document.getElementById("ugAutoAlign");
+    const mobile = document.getElementById("modalUgAutoAlign");
+    if (desktop) return desktop.checked;
+    if (mobile) return mobile.checked;
+    return true;
+}
+
+function syncAutoAlignCheckboxes(source) {
+    const desktop = document.getElementById("ugAutoAlign");
+    const mobile = document.getElementById("modalUgAutoAlign");
+    const checked = source.checked;
+    if (desktop && desktop !== source) desktop.checked = checked;
+    if (mobile && mobile !== source) mobile.checked = checked;
+}
+
+function renderAlignWarnings(issues, autoAlign) {
+    const panel = document.getElementById("ugAlignWarnings");
+    if (!panel) return;
+    if (!issues || issues.length === 0) {
+        panel.innerHTML = "";
+        panel.hidden = true;
+        panel.classList.add("hidden");
+        return;
+    }
+
+    const shown = issues.slice(0, 5);
+    const extra = issues.length - shown.length;
+    const status = autoAlign ? "（已自動修正）" : "（可開啟自動對齊）";
+    const items = shown.map((issue) => {
+        const reason = issue.reason === "consonant-vowel" ? "子音／母音被切開" : "不在音節邊界";
+        const correction = autoAlign && issue.correctedIndex !== issue.originalIndex
+            ? ` → 已移至 ${issue.correctedIndex}`
+            : "";
+        return `<li><strong>[${issue.chord}]</strong> ${reason}：<code>${issue.lyricContext}</code>${correction}</li>`;
+    }).join("");
+
+    panel.innerHTML = `
+        <div class="ug-align-warnings-title">對齊警告 ${status} · ${issues.length} 處</div>
+        <ul>${items}</ul>
+        ${extra > 0 ? `<div class="ug-align-warnings-more">還有 ${extra} 處未列出</div>` : ""}
+    `;
+    panel.hidden = false;
+    panel.classList.remove("hidden");
+}
+
 function runUGConvert() {
     const textarea = document.getElementById("editorTextarea");
     const content = textarea.value;
     const lines = content.split('\n');
 
-    // Locate the first non-meta line (same heuristic as updateMetaInfo)
     let firstContentIndex = lines.findIndex((line) =>
         line.trim() !== '' &&
         !line.trim().startsWith('#') &&
@@ -74,8 +119,9 @@ function runUGConvert() {
 
     const headerBlock = lines.slice(0, firstContentIndex).join('\n');
     const bodyBlock = lines.slice(firstContentIndex).join('\n');
-
-    const converted = convertUGToChordPro(bodyBlock);
+    const autoAlign = isAutoAlignEnabled();
+    const issues = collectAlignmentIssues(bodyBlock);
+    const converted = convertUGToChordPro(bodyBlock, { autoAlign });
 
     const newContent = firstContentIndex > 0
         ? headerBlock.trimEnd() + '\n\n' + converted
@@ -84,6 +130,7 @@ function runUGConvert() {
     saveToHistory();
     textarea.value = newContent.trim();
     sessionStorage.setItem("currentSheetContent", textarea.value);
+    renderAlignWarnings(issues, autoAlign);
 }
 
 export function initEditor() {
@@ -223,6 +270,8 @@ export function initEditor() {
     }
     const ugConvertBtn = document.getElementById("ugConvertBtn");
     const modalUgConvertBtn = document.getElementById("modalUgConvertBtn");
+    const ugAutoAlign = document.getElementById("ugAutoAlign");
+    const modalUgAutoAlign = document.getElementById("modalUgAutoAlign");
     if (ugConvertBtn) {
         ugConvertBtn.addEventListener("click", runUGConvert);
     }
@@ -231,6 +280,12 @@ export function initEditor() {
             closeModal(editorMobileSettingsModal);
             runUGConvert();
         });
+    }
+    if (ugAutoAlign) {
+        ugAutoAlign.addEventListener("change", () => syncAutoAlignCheckboxes(ugAutoAlign));
+    }
+    if (modalUgAutoAlign) {
+        modalUgAutoAlign.addEventListener("change", () => syncAutoAlignCheckboxes(modalUgAutoAlign));
     }
     if (modalClearBtn) {
         modalClearBtn.addEventListener("click", () => {
@@ -276,7 +331,7 @@ export function initEditor() {
     // 儲存按鈕事件
     const saveBtn = document.getElementById("saveBtn");
     saveBtn.onclick = saveToSheetsFolder;
-    saveBtn.title = "儲存（開啟系統儲存視窗）";
+    saveBtn.title = "儲存到樂譜庫";
 
     // URL導入事件
     document.getElementById("importUrlConfirmBtn").onclick = importFromUrl;

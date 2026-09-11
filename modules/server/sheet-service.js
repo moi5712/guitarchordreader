@@ -38,12 +38,12 @@ function parseSheetMeta(content) {
     return meta;
 }
 
-// 掃描樂譜文件夾。可傳入 sheetsDir 覆寫預設目錄（供 Electron IPC 等使用）。
+// 掃描樂譜文件夾（遷移用）。目錄不存在時回傳空列表，不自動建立。
 function scanSheetsFolder(sheetsDir) {
     const dir = sheetsDir || DEFAULT_SHEETS_DIR;
     try {
         if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
+            return { success: true, count: 0, sheets: [] };
         }
         const files = fs.readdirSync(dir);
         const sheets = [];

@@ -17,6 +17,7 @@ export let currentSettings = {
   lineGap: 14,
   transpose: 0,
   showFingering: false,
+  fingeringSize: 5,
   countdownEnabled: false,
   speed: 30
 };

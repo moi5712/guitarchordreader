@@ -8,6 +8,16 @@
 (function () {
   if (typeof window === 'undefined' || window.electronAPI) return;
 
+  // 只在真正的 Capacitor App（Android WebView）啟用。
+  // 瀏覽器也會載入此腳本；若未判斷就會蓋掉 HTTP / SQLite 樂譜庫。
+  var cap = window.Capacitor;
+  var isNative = !!(cap && (
+    typeof cap.isNativePlatform === 'function'
+      ? cap.isNativePlatform()
+      : cap.isNative
+  ));
+  if (!isNative) return;
+
   // ─── IndexedDB 初始化 ───────────────────────────────────────────────────────
   const DB_NAME = 'uchord-db';
   const DB_VERSION = 1;
@@ -133,14 +143,14 @@
       }
     },
 
-    /** 回傳樂譜目錄路徑（Android 顯示用） */
+    /** 回傳樂譜儲存位置（Android 顯示用） */
     getSheetsPath: async function () {
       return '裝置內部儲存（App 私有空間）';
     },
 
-    /** Android 不支援指定資料夾 */
+    /** Android 不支援從資料夾匯入 */
     selectSheetsFolder: async function () {
-      alert('Android 版不支援指定資料夾。\n樂譜儲存於 App 私有空間，以保護資料安全。');
+      alert('Android 版不支援從資料夾匯入。\n樂譜儲存於 App 私有空間，以保護資料安全。');
       return { success: false, canceled: true, path: '裝置內部儲存' };
     },
 

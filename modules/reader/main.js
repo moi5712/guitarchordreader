@@ -1,4 +1,4 @@
-import { importScore, saveSettings, getCurrentSheetContent } from './data.js';
+import { importScore, saveSettings, getCurrentSheetContent, loadSheetPlayback, saveSheetPlayback } from './data.js';
 import { render } from './ui.js';
 import { togglePlay, collectTargets, initPlayback } from './playback.js';
 import { setCurrentSettings, playing, countingDown, song, currentSettings } from './state.js';
@@ -21,14 +21,28 @@ function makeSheetKey(content, filename) {
   return `content:${hash}`;
 }
 
+function currentSheetKey() {
+  const content = getCurrentSheetContent();
+  const filename = song.filename || sessionStorage.getItem("currentFilename");
+  if (!filename && !content) return null;
+  return makeSheetKey(content, filename);
+}
+
 function bindNumericStepper(input, minusBtn, plusBtn, { onChange } = {}) {
   if (!input) return;
   const min = Number(input.min);
   const max = Number(input.max);
+  const parsedStep = Number(input.step);
+  const stepVal = Number.isFinite(parsedStep) && parsedStep > 0 ? parsedStep : 1;
   const clamp = (v) => {
-    let n = Math.round(Number(v));
-    if (!Number.isFinite(n)) n = min;
-    if (Number.isFinite(min)) n = Math.max(min, n);
+    let n = Number(v);
+    if (!Number.isFinite(n)) n = Number.isFinite(min) ? min : 0;
+    if (Number.isFinite(min)) {
+      n = min + Math.round((n - min) / stepVal) * stepVal;
+      n = Math.max(min, n);
+    } else {
+      n = Math.round(n / stepVal) * stepVal;
+    }
     if (Number.isFinite(max)) n = Math.min(max, n);
     return n;
   };
@@ -38,12 +52,12 @@ function bindNumericStepper(input, minusBtn, plusBtn, { onChange } = {}) {
   };
   minusBtn?.addEventListener("click", (e) => {
     e.stopPropagation();
-    input.value = clamp(Number(input.value) - 1);
+    input.value = clamp(Number(input.value) - stepVal);
     onChange?.();
   });
   plusBtn?.addEventListener("click", (e) => {
     e.stopPropagation();
-    input.value = clamp(Number(input.value) + 1);
+    input.value = clamp(Number(input.value) + stepVal);
     onChange?.();
   });
   input.addEventListener("input", onChange);
@@ -65,6 +79,14 @@ function mirrorStepper(sourceMinus, sourcePlus, mirrorMinus, mirrorPlus, onAfter
   mirrorPlus?.addEventListener("click", (e) => {
     e.stopPropagation();
     sourcePlus?.click();
+    onAfter?.();
+  });
+}
+
+function mirrorReset(sourceBtn, mirrorBtn, onAfter) {
+  mirrorBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    sourceBtn?.click();
     onAfter?.();
   });
 }
@@ -96,6 +118,9 @@ function init() {
   const transposePlus = document.getElementById("transposePlus");
   const transposeResetBtn = document.getElementById("transposeResetBtn");
   const showFingeringCheckbox = document.getElementById("showFingering");
+  const fingeringSizeInput = document.getElementById("fingeringSize");
+  const fingeringSizeMinus = document.getElementById("fingeringSizeMinus");
+  const fingeringSizePlus = document.getElementById("fingeringSizePlus");
   const countdownEnabledCheckbox = document.getElementById("countdownEnabled");
   const speedInput = document.getElementById("speed");
   const mobileSettingsBtn = document.getElementById("mobileSettingsBtn");
@@ -105,6 +130,7 @@ function init() {
   const mobileSheetFontPx = document.getElementById("mobileSheetFontPx");
   const mobileSheetLineGap = document.getElementById("mobileSheetLineGap");
   const mobileSheetTranspose = document.getElementById("mobileSheetTranspose");
+  const mobileSheetFingeringSize = document.getElementById("mobileSheetFingeringSize");
   const mobileSheetBpm = document.getElementById("mobileSheetBpm");
   const mobileMetronomeToggle = document.getElementById("mobileMetronomeToggle");
   const tunerBtn = document.getElementById("tunerBtn");
@@ -160,6 +186,16 @@ function init() {
     }, 100);
   };
 
+  const persistSheetPlayback = () => {
+    const key = currentSheetKey();
+    if (!key) return;
+    saveSheetPlayback(key, {
+      speed: Number(speedInput.value) || 30,
+      transpose: Number(transposeInput.value) || 0,
+      bpm: Number(metronomeBpmDisplay?.value) || 120,
+    });
+  };
+
   const onReaderSettingChange = () => {
     debouncedRender();
     saveSettings();
@@ -167,10 +203,17 @@ function init() {
     syncMobileSheetToggles();
   };
 
+  const onTransposeChange = () => {
+    debouncedRender();
+    persistSheetPlayback();
+    syncMobileSheetDisplays();
+  };
+
   function syncMobileSheetDisplays() {
     if (mobileSheetFontPx) mobileSheetFontPx.textContent = fontPxInput.value;
     if (mobileSheetLineGap) mobileSheetLineGap.textContent = lineGapInput.value;
     if (mobileSheetTranspose) mobileSheetTranspose.textContent = transposeInput.value;
+    if (mobileSheetFingeringSize && fingeringSizeInput) mobileSheetFingeringSize.textContent = fingeringSizeInput.value;
     if (mobileSheetBpm && metronomeBpmDisplay) mobileSheetBpm.textContent = metronomeBpmDisplay.value;
   }
 
@@ -197,7 +240,8 @@ function init() {
 
   bindNumericStepper(fontPxInput, fontPxMinus, fontPxPlus, { onChange: onReaderSettingChange });
   bindNumericStepper(lineGapInput, lineGapMinus, lineGapPlus, { onChange: onReaderSettingChange });
-  bindNumericStepper(transposeInput, transposeMinus, transposePlus, { onChange: onReaderSettingChange });
+  bindNumericStepper(transposeInput, transposeMinus, transposePlus, { onChange: onTransposeChange });
+  bindNumericStepper(fingeringSizeInput, fingeringSizeMinus, fingeringSizePlus, { onChange: onReaderSettingChange });
 
   function getSheetDefaultTranspose() {
     const capo = song.meta?.capo;
@@ -238,7 +282,7 @@ function init() {
 
   speedInput.addEventListener("input", () => {
     updateSpeedSliderUi();
-    saveSettings();
+    persistSheetPlayback();
   });
 
   const savedSettings = localStorage.getItem("readerSettings");
@@ -247,10 +291,17 @@ function init() {
       const settings = JSON.parse(savedSettings);
       fontPxInput.value = settings.fontSize || 18;
       lineGapInput.value = settings.lineGap || 14;
-      transposeInput.value = settings.transpose || 0;
       showFingeringCheckbox.checked = settings.showFingering || false;
+      if (fingeringSizeInput) {
+        const raw = Number(settings.fingeringSize);
+        const level = !Number.isFinite(raw) || raw <= 0
+          ? 5
+          : raw > 10
+            ? Math.min(10, Math.max(1, Math.round((raw - 40) / 12)))
+            : Math.min(10, Math.max(1, Math.round(raw)));
+        fingeringSizeInput.value = level;
+      }
       countdownEnabledCheckbox.checked = settings.countdownEnabled || false;
-      speedInput.value = settings.speed || 30;
       updateSpeedSliderUi();
 
       setCurrentSettings({ ...currentSettings, ...settings });
@@ -263,11 +314,15 @@ function init() {
   mirrorStepper(fontPxMinus, fontPxPlus, document.getElementById("mobileFontPxMinus"), document.getElementById("mobileFontPxPlus"));
   mirrorStepper(lineGapMinus, lineGapPlus, document.getElementById("mobileLineGapMinus"), document.getElementById("mobileLineGapPlus"));
   mirrorStepper(transposeMinus, transposePlus, document.getElementById("mobileTransposeMinus"), document.getElementById("mobileTransposePlus"));
+  mirrorStepper(fingeringSizeMinus, fingeringSizePlus, document.getElementById("mobileFingeringSizeMinus"), document.getElementById("mobileFingeringSizePlus"));
   mirrorStepper(metronomeBpmMinus, metronomeBpmPlus, document.getElementById("mobileBpmMinus"), document.getElementById("mobileBpmPlus"), syncMobileSheetDisplays);
+  mirrorReset(transposeResetBtn, document.getElementById("mobileTransposeReset"), syncMobileSheetDisplays);
+  mirrorReset(metronomeResetBtn, document.getElementById("mobileBpmReset"), syncMobileSheetDisplays);
 
   fontPxInput.addEventListener("change", syncMobileSheetDisplays);
   lineGapInput.addEventListener("change", syncMobileSheetDisplays);
   transposeInput.addEventListener("change", syncMobileSheetDisplays);
+  fingeringSizeInput?.addEventListener("change", syncMobileSheetDisplays);
   metronomeBpmDisplay?.addEventListener("change", syncMobileSheetDisplays);
 
   mobileSettingsBtn?.addEventListener("click", openMobileSheet);
@@ -307,10 +362,30 @@ function init() {
     toggleBtn: metronomeBtn,
     extraToggleBtns: [mobileMetronomeToggle].filter(Boolean),
     getSheetBpm: () => song.meta?.bpm,
+    onBpmChange: () => {
+      persistSheetPlayback();
+      syncMobileSheetDisplays();
+    },
   });
   initPlayback(metronome);
+
+  function applySheetPlaybackPrefs() {
+    const saved = loadSheetPlayback(currentSheetKey());
+    const defaultTranspose = getSheetDefaultTranspose();
+    const savedTranspose = saved != null ? Number(saved.transpose) : NaN;
+    const savedSpeed = saved != null ? Number(saved.speed) : NaN;
+    const savedBpm = saved != null ? Number(saved.bpm) : NaN;
+    transposeInput.value = Number.isFinite(savedTranspose) ? savedTranspose : defaultTranspose;
+    speedInput.value = Number.isFinite(savedSpeed) ? savedSpeed : 30;
+    updateSpeedSliderUi();
+    if (Number.isFinite(savedBpm)) {
+      metronome.setBpm(savedBpm, { emit: false });
+    }
+  }
+
   window.__onSheetLoaded = () => {
     metronome.onSheetLoaded();
+    applySheetPlaybackPrefs();
     syncMobileSheetDisplays();
   };
 

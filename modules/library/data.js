@@ -56,7 +56,7 @@ function compareSheets(a, b) {
   }
 }
 
-// --- 掃描 sheets 資料夾 ---
+// --- 從後端載入樂譜庫 ---
 async function autoScanSheetsFolder() {
   try {
     // Electron IPC（不佔 port）

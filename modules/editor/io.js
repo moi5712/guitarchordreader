@@ -97,42 +97,69 @@ export function importDocument(text, filename) {
     loadCustomChordsFromText(text);
 }
 
+function suggestedSaveFilename() {
+    const songTitle = document.getElementById("songTitle").value.trim() || "未命名";
+    const rawBase = (currentFilename || songTitle).replace(/\.gtab$|\.txt$/i, "").trim() || "未命名";
+    const baseName = rawBase.replace(/[<>:"/\\|?*\x00-\x1f]/g, "").trim() || "未命名";
+    const useGtabExt = currentFilename ? /\.gtab$/i.test(currentFilename) : true;
+    return `${baseName}${useGtabExt ? ".gtab" : ".txt"}`;
+}
+
+async function saveSheetViaHttp(filename, content) {
+    const response = await fetch(API_BASE + "/api/save-sheet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename, content }),
+    });
+    const text = await response.text();
+    let data = {};
+    try {
+        data = text ? JSON.parse(text) : {};
+    } catch (_) {
+        if (!response.ok) {
+            throw new Error(text || response.statusText || "請求失敗");
+        }
+    }
+    if (!response.ok || data.success === false) {
+        throw new Error(data.error || text || response.statusText || "儲存失敗");
+    }
+    return data;
+}
+
 // 儲存檔案
 export async function saveToSheetsFolder() {
-    if (!window.electronAPI?.saveSheetAs) {
-        showAlert("儲存無法使用：未偵測到桌面版環境。請用「吉他譜閱讀器編輯器」exe 開啟（免安裝或安裝版皆可）。");
-        return;
-    }
     const content = document.getElementById("editorTextarea").value;
     if (!content.trim()) {
         return showAlert("請先輸入樂譜內容");
     }
 
-    const songTitle = document.getElementById("songTitle").value.trim() || "未命名";
-    const baseName = (currentFilename || songTitle).replace(/\.gtab$|\.txt$/i, "").trim() || "未命名";
-    const useGtabExt = currentFilename ? /\.gtab$/i.test(currentFilename) : true;
-    const suggestedFilename = `${baseName}${useGtabExt ? ".gtab" : ".txt"}`;
-    
+    const filename = suggestedSaveFilename();
+
     try {
-        const result = await Promise.race([
-            window.electronAPI.saveSheetAs(suggestedFilename, content),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("儲存逾時（15 秒）")), 15000))
-        ]);
-        if (result === undefined) {
-            showAlert("儲存失敗：未收到回應。請確認使用桌面版 exe 開啟，並重新建置後再試。");
-            return;
-        }
-        if (result?.canceled) {
-            return;
-        }
-        if (result && result.success !== false) {
-            if (result.filename) {
-                setCurrentFilename(result.filename);
+        if (window.electronAPI?.saveSheetAs) {
+            const result = await Promise.race([
+                window.electronAPI.saveSheetAs(filename, content),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("儲存逾時（15 秒）")), 15000))
+            ]);
+            if (result === undefined) {
+                showAlert("儲存失敗：未收到回應。請確認使用桌面版 exe 開啟，並重新建置後再試。");
+                return;
             }
-            return;
-        } else {
+            if (result?.canceled) {
+                return;
+            }
+            if (result && result.success !== false) {
+                if (result.filename) {
+                    setCurrentFilename(result.filename);
+                }
+                return;
+            }
             showAlert(`儲存失敗：${result?.error || '未知錯誤'}`);
+            return;
         }
+
+        const data = await saveSheetViaHttp(filename, content);
+        setCurrentFilename(data.filename || filename);
     } catch (error) {
         console.error("儲存錯誤:", error);
         showAlert(`儲存失敗：${error.message}`);
@@ -140,7 +167,7 @@ export async function saveToSheetsFolder() {
 }
 
 
-// 從樂譜庫刪除目前編輯的檔案（會刪除 sheets 資料夾內的實體檔案）
+// 從樂譜庫刪除目前編輯的檔案
 export async function deleteSheetFromLibrary() {
     const filename = getCurrentFilename();
     if (!filename) {

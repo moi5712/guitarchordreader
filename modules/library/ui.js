@@ -72,10 +72,10 @@ function updateEmptyMessage(pathText) {
     if (!emptyMessage) return;
     const normalized = typeof pathText === 'string' ? pathText.trim() : '';
     if (!normalized) {
-        emptyMessage.textContent = '請先指定樂譜資料夾，並將檔案放入該資料夾';
+        emptyMessage.textContent = '樂譜庫是空的。可新增樂譜，或從資料夾匯入既有檔案。';
         return;
     }
-    emptyMessage.textContent = `目前讀取資料夾：${normalized}`;
+    emptyMessage.textContent = `資料庫：${normalized}`;
 }
 
 async function syncSheetsPathHint() {
@@ -381,21 +381,27 @@ async function handleImportFromUrl() {
 
 async function handleSelectSheetsFolder() {
     if (!window.electronAPI?.selectSheetsFolder) {
-        alert('目前環境不支援指定資料夾功能。');
+        alert('瀏覽器模式請將舊樂譜放在專案 sheets 資料夾，重啟伺服器即可自動匯入。');
         return;
     }
     try {
         const result = await window.electronAPI.selectSheetsFolder();
         if (!result || result.canceled) return;
+        if (result.success === false) {
+            alert(result.error || '匯入失敗，請稍後再試。');
+            return;
+        }
         updateEmptyMessage(result.path);
         await loadSheetLibrary();
         filterSheets();
         renderSheets();
         renderTagButtons();
         updateStatus();
+        const count = typeof result.imported === 'number' ? result.imported : 0;
+        alert(count > 0 ? `已從資料夾匯入 ${count} 首樂譜。` : '該資料夾沒有可匯入的 .txt / .gtab 樂譜。');
     } catch (error) {
-        console.error('指定樂譜資料夾失敗:', error);
-        alert('指定資料夾失敗，請稍後再試。');
+        console.error('從資料夾匯入失敗:', error);
+        alert('從資料夾匯入失敗，請稍後再試。');
     }
 }
 

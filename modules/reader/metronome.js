@@ -53,12 +53,13 @@ function defaultBpmFromSheet(getSheetBpm) {
  * @param {HTMLElement} opts.toggleBtn
 
  * @param {() => number|string|undefined|null} opts.getSheetBpm
+ * @param {(bpm: number) => void} [opts.onBpmChange]
 
  */
 
 export function initMetronome(opts) {
 
-  const { bpmMinusBtn, bpmPlusBtn, bpmDisplayEl, resetBtn, toggleBtn, extraToggleBtns = [], getSheetBpm } = opts;
+  const { bpmMinusBtn, bpmPlusBtn, bpmDisplayEl, resetBtn, toggleBtn, extraToggleBtns = [], getSheetBpm, onBpmChange } = opts;
 
   const toggleBtns = [toggleBtn, ...extraToggleBtns].filter(Boolean);
 
@@ -142,7 +143,7 @@ export function initMetronome(opts) {
 
 
 
-  function setBpm(bpm, { restartIfRunning = false } = {}) {
+  function setBpm(bpm, { restartIfRunning = false, emit = true } = {}) {
 
     currentBpm = clampBpm(bpm);
 
@@ -153,6 +154,8 @@ export function initMetronome(opts) {
       restartScheduler();
 
     }
+
+    if (emit) onBpmChange?.(currentBpm);
 
   }
 
@@ -326,7 +329,7 @@ export function initMetronome(opts) {
 
     syncToggleBtn();
 
-    setBpm(defaultBpmFromSheet(getSheetBpm));
+    setBpm(defaultBpmFromSheet(getSheetBpm), { emit: false });
 
   }
 
@@ -447,6 +450,8 @@ export function initMetronome(opts) {
     isRunning: () => schedulerRunning,
 
     getBpm: () => currentBpm,
+
+    setBpm,
 
     destroy: () => {
 

@@ -94,6 +94,7 @@
       "createStartMenuShortcut": true
     },
     "forceCodeSigning": false,
+    "npmRebuild": false,
     "asarUnpack": [
       "node_modules/better-sqlite3/**"
     ],

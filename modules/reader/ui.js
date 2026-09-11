@@ -2,6 +2,7 @@ import { song, currentSettings, customChordFingerings, setCurrentSettings } from
 import { createChordDiagram, transposeChord } from '../utils/chord-utils.js';
 import { SCORE_CONFIG } from '../config/score-config.js';
 import { importScore } from './data.js';
+import { assetUrl } from '../config/paths.js';
 
 function normalizeFingeringSize(size) {
   const n = Number(size);
@@ -163,7 +164,9 @@ export function render() {
   const cardEl = document.querySelector(".card");
 
   if (headerEl) {
-    const imageUrl = song.meta.image || '/assets/guitar4.jpg';
+    const imageUrl = song.meta.image
+      ? (/^(https?:|data:|blob:)/i.test(song.meta.image) ? song.meta.image : assetUrl(song.meta.image.startsWith('/') ? song.meta.image : '/' + song.meta.image))
+      : assetUrl('/assets/guitar4.jpg');
     headerEl.style.backgroundImage = `url('${imageUrl}')`;
     headerEl.style.backgroundSize = 'cover';
     headerEl.style.backgroundPosition = 'center';

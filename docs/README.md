@@ -33,6 +33,14 @@
 
 桌面版**不啟動 HTTP 伺服器**，所有 API 改由 Electron 主行程透過 IPC 處理，因此不佔用本機連接埠；網址導入由主行程代為請求並寫檔。
 
+### 方式三：GitHub Pages（線上網頁）
+
+推送到 `main` 後會自動部署：
+
+**https://moi5712.github.io/guitarchordreader/**
+
+樂譜存在瀏覽器本機（IndexedDB），可閱讀與編輯。從網址導入需後端，線上版不可用。說明見 [DEPLOY.md](DEPLOY.md)。
+
 ---
 
 ## 建置桌面版（Windows）

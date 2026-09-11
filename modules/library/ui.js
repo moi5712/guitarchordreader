@@ -2,6 +2,7 @@ import { filteredSheets, currentSheets, selectedTags, normalTagCounts, artistTag
 import { filterSheets, updateBookmark, loadSheetLibrary } from './data.js';
 import { saveLibraryPrefs } from './persist.js';
 import { API_BASE } from '../config/api.js';
+import { assetUrl } from '../config/paths.js';
 import { closeModal, openModal, initCustomSelect } from '../utils/ui-utils.js';
 
 // DOM 元素
@@ -127,7 +128,9 @@ function createSheetCard(sheet) {
     card.className = 'sheet-card';
 
     const isBookmarked = sheet.bookmarked ? 'bookmarked' : '';
-    const imageUrl = sheet.image ? sheet.image : '/assets/guitar4.jpg';
+    const imageUrl = sheet.image
+      ? (/^(https?:|data:|blob:)/i.test(sheet.image) ? sheet.image : assetUrl(sheet.image.startsWith('/') ? sheet.image : '/' + sheet.image))
+      : assetUrl('/assets/guitar4.jpg');
 
     card.innerHTML = `
         <div class="sheet-card-image-container">

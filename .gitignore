@@ -5,6 +5,7 @@ debug_no_variable_*.html
 node_modules/
 dist/
 build/
+.pages-dist/
 
 # Android 建置產物（www 由 npm run build:android-www 自動產生）
 www/

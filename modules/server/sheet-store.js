@@ -66,7 +66,7 @@ function assertValidFilename(filename) {
     return base;
 }
 
-function rowToSheet(row, bookmarked) {
+function rowToSheet(row, bookmarked, includeContent = true) {
     let tags = [];
     try {
         tags = JSON.parse(row.tags || '[]');
@@ -74,7 +74,7 @@ function rowToSheet(row, bookmarked) {
     } catch (_) {
         tags = [];
     }
-    return {
+    const sheet = {
         filename: row.filename,
         title: row.title || '',
         artist: row.artist || '',
@@ -83,12 +83,13 @@ function rowToSheet(row, bookmarked) {
         capo: row.capo || '',
         tags,
         image: row.image || '',
-        content: row.content,
         lastModified: row.last_modified,
         addedDate: row.added_date,
         size: row.size,
         bookmarked: !!bookmarked
     };
+    if (includeContent) sheet.content = row.content || '';
+    return sheet;
 }
 
 function sheetCount() {
@@ -100,8 +101,13 @@ function listSheets() {
     const bookmarkSet = new Set(
         database.prepare('SELECT filename FROM bookmarks').all().map((r) => r.filename)
     );
-    const rows = database.prepare('SELECT * FROM sheets ORDER BY filename COLLATE NOCASE').all();
-    const sheets = rows.map((row) => rowToSheet(row, bookmarkSet.has(row.filename)));
+    const rows = database.prepare(`
+        SELECT filename, title, artist, key, bpm, capo, tags, image,
+               last_modified, added_date, size
+        FROM sheets
+        ORDER BY filename COLLATE NOCASE
+    `).all();
+    const sheets = rows.map((row) => rowToSheet(row, bookmarkSet.has(row.filename), false));
     return {
         success: true,
         count: sheets.length,

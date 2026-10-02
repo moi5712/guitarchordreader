@@ -29,10 +29,3 @@ export function redo() {
       editorHistory[historyIndex];
   }
 }
-
-export function getHistory() {
-    return {
-        editorHistory,
-        historyIndex
-    }
-}

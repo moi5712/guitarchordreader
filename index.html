@@ -5,6 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>u-chord</title>
     <link rel="stylesheet" href="/styles.css" />
+    <link rel="modulepreload" href="/modules/library/main.js" />
+    <script>
+      (function () {
+        try {
+          var prefs = JSON.parse(localStorage.getItem("libraryPrefs") || "{}");
+          var view = prefs.libraryView;
+          if (view !== "list" && view !== "cards") {
+            view = window.innerWidth <= 640 ? "list" : "cards";
+          }
+          document.documentElement.classList.add(
+            view === "list" ? "library-view-list" : "library-view-cards"
+          );
+        } catch (e) {
+          document.documentElement.classList.add(
+            window.innerWidth <= 640 ? "library-view-list" : "library-view-cards"
+          );
+        }
+      })();
+    </script>
     <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
     <link rel="manifest" href="/manifest.webmanifest" />
   </head>
@@ -13,35 +32,83 @@
       <div class="library-header-content">
         <div class="library-header-top">
           <a href="/" class="library-title">u-chord</a>
-          <button
-            id="libraryFilterBtn"
-            class="btn-icon library-filter-btn mobile-only"
-            type="button"
-            title="標籤篩選"
-            aria-label="標籤篩選"
-            aria-expanded="false"
-            aria-controls="libraryFilterDrawer"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-            </svg>
-          </button>
-          <input
-            id="searchInput"
-            class="input library-search-input"
-            type="text"
-            placeholder="搜尋樂譜、作者或標籤..."
-          />
-          <div class="library-header-right">
-            <button id="newBtn" class="btn-icon" title="新增樂譜">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          <div class="library-toolbar-controls">
+            <div id="librarySearch" class="library-search">
+              <label class="btn-icon library-search-toggle" for="searchInput" title="搜尋" aria-label="搜尋">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+              </label>
+              <input
+                id="searchInput"
+                class="input library-search-input"
+                type="search"
+                placeholder="搜尋樂譜、作者或標籤..."
+                autocomplete="off"
+              />
+            </div>
+            <button
+              id="showBookmarksBtn"
+              class="btn-icon library-bookmark-toggle"
+              type="button"
+              title="我的書籤"
+              aria-label="我的書籤"
+              aria-pressed="false"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
               </svg>
             </button>
-            <div id="newMenu" class="library-new-menu" aria-hidden="true">
-              <button type="button" class="library-new-menu-item" data-action="new">新增樂譜</button>
-              <button type="button" class="library-new-menu-item" data-action="importUrl">網址導入</button>
-              <button type="button" class="library-new-menu-item" data-action="importFile">載入樂譜</button>
+            <button
+              id="libraryViewBtn"
+              class="btn-icon library-view-toggle"
+              type="button"
+              title="清單視圖"
+              aria-label="清單視圖"
+              aria-pressed="false"
+            >
+              <svg class="library-view-icon library-view-icon-list" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+              <svg class="library-view-icon library-view-icon-cards" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+              </svg>
+            </button>
+            <div class="library-sort-group">
+              <label for="sortBy" class="visually-hidden">排序</label>
+              <select id="sortBy" class="select" title="排序" aria-label="排序">
+                <option value="A-Z">A - Z</option>
+                <option value="Z-A">Z - A</option>
+                <option value="latest">最近</option>
+                <option value="earliest">最早</option>
+                <option value="frequent">常用</option>
+              </select>
+            </div>
+            <button
+              id="libraryFilterBtn"
+              class="btn-icon library-filter-btn mobile-only"
+              type="button"
+              title="標籤篩選"
+              aria-label="標籤篩選"
+              aria-expanded="false"
+              aria-controls="libraryFilterDrawer"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+              </svg>
+            </button>
+            <div class="library-header-right">
+              <button id="newBtn" class="btn-icon" title="新增樂譜" aria-haspopup="menu" aria-expanded="false" aria-controls="newMenu">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+              </button>
+              <div id="newMenu" class="library-new-menu" role="menu" aria-hidden="true">
+                <button type="button" class="library-new-menu-item" data-action="new" role="menuitem">新增樂譜</button>
+                <button type="button" class="library-new-menu-item" data-action="importUrl" role="menuitem">網址導入</button>
+                <button type="button" class="library-new-menu-item" data-action="importFile" role="menuitem">載入樂譜</button>
+                <button type="button" class="library-new-menu-item" data-action="importFolder" role="menuitem">從資料夾匯入</button>
+              </div>
             </div>
           </div>
           <input id="libraryImportFile" type="file" accept=".txt,.gtab" class="hidden" />
@@ -56,8 +123,8 @@
         <p class="modal-message">請在下方貼上網址，每個網址一行。僅支援 ufret.jp 網站。</p>
         <textarea id="urlTextarea" class="editor-textarea" rows="10" placeholder="https://www.ufret.jp/song.php?data=..."></textarea>
         <div class="modal-actions">
-          <button id="importUrlConfirmBtn" class="btn primary">導入</button>
           <button id="importUrlCancelBtn" class="btn secondary">取消</button>
+          <button id="importUrlConfirmBtn" class="btn primary">導入</button>
         </div>
       </div>
     </div>
@@ -67,34 +134,7 @@
         <button type="button" class="library-filter-backdrop" id="libraryFilterBackdrop" aria-label="關閉篩選"></button>
         <aside class="sidebar">
           <div class="library-filter-header">
-            <h2 id="libraryFilterTitle" class="library-filter-title">篩選</h2>
             <button id="libraryFilterClose" type="button" class="btn-icon library-filter-close" aria-label="關閉">✕</button>
-          </div>
-          <div class="library-toolbar-controls">
-            <button
-              id="showBookmarksBtn"
-              class="tag-btn library-bookmark-toggle"
-            >
-              我的書籤
-            </button>
-            <div class="library-sort-group">
-              <label for="sortBy">排序</label>
-              <select id="sortBy" class="select">
-                <option value="A-Z">A - Z</option>
-                <option value="Z-A">Z - A</option>
-                <option value="latest">最近</option>
-                <option value="earliest">最早</option>
-                <option value="frequent">常用</option>
-              </select>
-            </div>
-            <button
-              id="selectSheetsFolderBtn"
-              class="tag-btn library-folder-btn"
-              type="button"
-              title="從資料夾匯入既有樂譜到資料庫"
-            >
-              從資料夾匯入
-            </button>
           </div>
           <div class="sidebar-section sidebar-section-tags">
             <h2 class="sidebar-title">標籤</h2>
@@ -112,9 +152,9 @@
         <div id="statusBar" class="status-bar">
           <div class="status-bar-main">
             <span id="sheetCount">0 首樂譜</span>
-            <span id="statusFilters" class="status-filter-text">未套用篩選</span>
           </div>
           <div class="status-bar-actions">
+            <span id="statusFilters" class="status-filter-text hidden">未套用篩選</span>
             <button id="clearTagsBtn" class="btn secondary hidden">清除篩選</button>
           </div>
         </div>
@@ -134,22 +174,11 @@
         </div>
       </main>
     </div>
-    <a href="#" class="back-to-top"
-      ><svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke-width="1.5"
-        stroke="currentColor"
-        class="size-6"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          d="m4.5 15.75 7.5-7.5 7.5 7.5"
-        />
+    <button type="button" class="back-to-top" title="回到頂部" aria-label="回到頂部">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75 12 8.25l7.5 7.5" />
       </svg>
-    </a>
+    </button>
     <!-- Android 橋接層：在 Electron 環境不會作用 -->
     <script src="/modules/capacitor-bridge.js"></script>
     <script type="module" src="/modules/library/main.js"></script>

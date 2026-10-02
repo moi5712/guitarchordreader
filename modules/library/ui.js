@@ -1,5 +1,5 @@
-import { filteredSheets, currentSheets, selectedTags, normalTagCounts, artistTagCounts, addSelectedTag, deleteSelectedTag, clearSelectedTags, setSortBy, setShowBookmarksOnly, showBookmarksOnly, toggleShowBookmarksOnly } from './state.js';
-import { filterSheets, updateBookmark, loadSheetLibrary } from './data.js';
+import { filteredSheets, currentSheets, selectedTags, normalTagCounts, artistTagCounts, addSelectedTag, deleteSelectedTag, clearSelectedTags, setSortBy, setShowBookmarksOnly, setLibraryView, libraryView, showBookmarksOnly, toggleShowBookmarksOnly } from './state.js';
+import { filterSheets, updateBookmark, loadSheetLibrary, fetchSheet } from './data.js';
 import { saveLibraryPrefs } from './persist.js';
 import { API_BASE } from '../config/api.js';
 import { closeModal, openModal, initCustomSelect } from '../utils/ui-utils.js';
@@ -17,9 +17,10 @@ const artistTagButtons = document.getElementById('artistTagButtons');
 const clearTagsBtn = document.getElementById('clearTagsBtn');
 const sortBySelect = document.getElementById('sortBy');
 const showBookmarksBtn = document.getElementById('showBookmarksBtn');
-const selectSheetsFolderBtn = document.getElementById('selectSheetsFolderBtn');
+const libraryViewBtn = document.getElementById('libraryViewBtn');
 const newBtn = document.getElementById('newBtn');
 const newMenu = document.getElementById('newMenu');
+const librarySearch = document.getElementById('librarySearch');
 const emptyMessage = document.getElementById('emptyMessage');
 const libraryHeader = document.querySelector('.library-header');
 const libraryImportFile = document.getElementById('libraryImportFile');
@@ -28,7 +29,6 @@ const libraryFilterBtn = document.getElementById('libraryFilterBtn');
 const libraryFilterBackdrop = document.getElementById('libraryFilterBackdrop');
 const libraryFilterClose = document.getElementById('libraryFilterClose');
 const libraryToolbarControls = document.querySelector('.library-toolbar-controls');
-const libraryHeaderRight = document.querySelector('.library-header-right');
 const libraryHeaderTop = document.querySelector('.library-header-top');
 const importUrlModal = document.getElementById('importUrlModal');
 const urlTextarea = document.getElementById('urlTextarea');
@@ -51,21 +51,49 @@ function syncLibraryHeaderOffset() {
 const MOBILE_BREAKPOINT = 640;
 
 function syncToolbarPosition() {
-    if (!libraryToolbarControls || !libraryHeaderTop || !libraryHeaderRight) return;
-    const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
-    if (isMobile) {
-        // 手機：確保 toolbar 在 drawer 的 aside 內（sidebar-section-tags 前面）
-        const sidebar = libraryFilterDrawer?.querySelector('.sidebar');
-        const tagsSection = libraryFilterDrawer?.querySelector('.sidebar-section-tags');
-        if (sidebar && tagsSection && libraryToolbarControls.parentElement !== sidebar) {
-            sidebar.insertBefore(libraryToolbarControls, tagsSection);
-        }
-    } else {
-        // 桌面：把 toolbar 放回 header-top，在 library-header-right 前面
-        if (libraryToolbarControls.parentElement !== libraryHeaderTop) {
-            libraryHeaderTop.insertBefore(libraryToolbarControls, libraryHeaderRight);
-        }
+    if (!libraryToolbarControls || !libraryHeaderTop) return;
+    if (libraryToolbarControls.parentElement !== libraryHeaderTop) {
+        libraryHeaderTop.appendChild(libraryToolbarControls);
     }
+}
+
+export function syncSearchExpanded() {
+    if (!librarySearch || !searchInput) return;
+    librarySearch.classList.toggle('is-open', !!searchInput.value.trim());
+}
+
+function getActiveLibraryView() {
+    if (libraryView === 'list' || libraryView === 'cards') return libraryView;
+    return window.innerWidth <= MOBILE_BREAKPOINT ? 'list' : 'cards';
+}
+
+export function applyLibraryView() {
+    const view = getActiveLibraryView();
+    document.documentElement.classList.toggle('library-view-list', view === 'list');
+    document.documentElement.classList.toggle('library-view-cards', view === 'cards');
+    if (!libraryViewBtn) return;
+    const isList = view === 'list';
+    libraryViewBtn.setAttribute('aria-pressed', isList ? 'true' : 'false');
+    libraryViewBtn.title = isList ? '卡片視圖' : '清單視圖';
+    libraryViewBtn.setAttribute('aria-label', libraryViewBtn.title);
+}
+
+function toggleLibraryView() {
+    const next = getActiveLibraryView() === 'list' ? 'cards' : 'list';
+    setLibraryView(next);
+    applyLibraryView();
+    saveLibraryPrefs();
+}
+
+function decorateSortTrigger() {
+    const trigger = document.querySelector('.library-sort-group .custom-select-trigger');
+    if (!trigger || trigger.querySelector('.library-sort-icon')) return;
+    trigger.setAttribute('title', '排序');
+    trigger.setAttribute('aria-label', '排序');
+    trigger.insertAdjacentHTML(
+        'afterbegin',
+        `<svg class="library-sort-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5h18M6 12h12M9 16.5h6" /></svg>`
+    );
 }
 
 function updateEmptyMessage(pathText) {
@@ -104,6 +132,42 @@ export function hideLoadingState() {
     loadingState.classList.add('hidden');
 }
 
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function bindSheetsContainer() {
+    if (!sheetsContainer || sheetsContainer.dataset.bound === '1') return;
+    sheetsContainer.dataset.bound = '1';
+    sheetsContainer.addEventListener('click', async (event) => {
+        const card = event.target.closest('.sheet-card');
+        if (!card) return;
+        const filename = card.dataset.filename;
+        if (!filename) return;
+
+        const bookmarkBtn = event.target.closest('.bookmark-icon');
+        if (bookmarkBtn) {
+            event.preventDefault();
+            const next = !bookmarkBtn.classList.contains('bookmarked');
+            const success = await updateBookmark(filename, next);
+            if (success) bookmarkBtn.classList.toggle('bookmarked', next);
+            return;
+        }
+
+        if (event.target.closest('.edit-icon')) {
+            event.preventDefault();
+            navigateToSheet(filename, 'editor');
+            return;
+        }
+
+        navigateToSheet(filename, 'reader');
+    });
+}
+
 // 渲染樂譜卡片
 export function renderSheets() {
     sheetsContainer.innerHTML = '';
@@ -115,72 +179,61 @@ export function renderSheets() {
 
     hideEmptyState();
 
-    filteredSheets.forEach(sheet => {
-        const card = createSheetCard(sheet);
-        sheetsContainer.appendChild(card);
+    const fragment = document.createDocumentFragment();
+    filteredSheets.forEach((sheet) => {
+        fragment.appendChild(createSheetCard(sheet));
     });
+    sheetsContainer.appendChild(fragment);
 }
 
 // 創建樂譜卡片
 function createSheetCard(sheet) {
     const card = document.createElement('div');
     card.className = 'sheet-card';
+    card.dataset.filename = sheet.filename;
 
+    const title = sheet.title || '未命名歌曲';
+    const artist = sheet.artist || '未知演唱者';
     const isBookmarked = sheet.bookmarked ? 'bookmarked' : '';
-    const imageUrl = sheet.image ? sheet.image : '/assets/guitar4.jpg';
+    const imageUrl = sheet.image || '';
+    const tagsHtml = sheet.tags && sheet.tags.length
+        ? `<div class="sheet-tags">${sheet.tags.map((tag) => `<span class="sheet-tag">${escapeHtml(tag)}</span>`).join('')}</div>`
+        : '';
+    const imageHtml = imageUrl
+        ? `<img class="sheet-card-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)}" loading="lazy" decoding="async" />`
+        : '';
 
     card.innerHTML = `
-        <div class="sheet-card-image-container">
-            <img class="sheet-card-image" src="${imageUrl}" alt="${sheet.title}" />
-            <div class="sheet-card-top-actions">
-                <div class="top-icon edit-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" ><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-               </div>
-                <div class="top-icon bookmark-icon ${isBookmarked}">
-                    <svg viewBox="0 0 24 24"><path d="M5 3.5A1.5 1.5 0 0 1 6.5 2h11A1.5 1.5 0 0 1 19 3.5v18.21l-6.22-4.443a1.5 1.5 0 0 0-1.56 0L5 21.71V3.5Z"></path></svg>
-                </div>
+        <div class="sheet-card-image-container">${imageHtml}</div>
+        <div class="sheet-card-content">
+            <div class="sheet-title" title="${escapeHtml(title)}">${escapeHtml(title)}</div>
+            <div class="sheet-artist" title="${escapeHtml(artist)}">${escapeHtml(artist)}</div>
+            ${tagsHtml}
+        </div>
+        <div class="sheet-card-top-actions">
+            <div class="top-icon edit-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" ><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            </div>
+            <div class="top-icon bookmark-icon ${isBookmarked}">
+                <svg viewBox="0 0 24 24"><path d="M5 3.5A1.5 1.5 0 0 1 6.5 2h11A1.5 1.5 0 0 1 19 3.5v18.21l-6.22-4.443a1.5 1.5 0 0 0-1.56 0L5 21.71V3.5Z"></path></svg>
             </div>
         </div>
-        <div class="sheet-card-content">
-            <div class="sheet-title" title="${sheet.title}">${sheet.title || '未命名歌曲'}</div>
-            <div class="sheet-artist" title="${sheet.artist}">${sheet.artist || '未知演唱者'}</div>
-            ${sheet.tags && sheet.tags.length > 0 ? `
-                <div class="sheet-tags">
-                    ${sheet.tags.map(tag => `<span class="sheet-tag">${tag}</span>`).join('')}
-                </div>
-            ` : ''}
-        </div>
     `;
-
-    // Event listeners
-    const editBtn = card.querySelector('.edit-icon');
-    const bookmarkBtn = card.querySelector('.bookmark-icon');
-
-    card.addEventListener('click', () => navigateToSheet(sheet.filename, 'reader'));
-    editBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        navigateToSheet(sheet.filename, 'editor');
-    });
-    
-    bookmarkBtn.addEventListener('click', async (e) => {
-        e.stopPropagation(); // Prevent card click event
-        const isCurrentlyBookmarked = bookmarkBtn.classList.contains('bookmarked');
-        const success = await updateBookmark(sheet.filename, !isCurrentlyBookmarked);
-        if (success) {
-            bookmarkBtn.classList.toggle('bookmarked');
-        }
-    });
 
     return card;
 }
 
 // 依模式跳轉閱讀或編輯
-function navigateToSheet(filename, mode) {
-    const sheet = currentSheets.find(s => s.filename === filename);
-    if (!sheet) return;
-    sessionStorage.setItem('currentSheetContent', sheet.content);
-    sessionStorage.setItem('currentFilename', sheet.filename);
-    window.location.href = mode === 'editor' ? 'editor.html' : 'reader.html';
+async function navigateToSheet(filename, mode) {
+    try {
+        const sheet = await fetchSheet(filename);
+        sessionStorage.setItem('currentSheetContent', sheet.content || '');
+        sessionStorage.setItem('currentFilename', sheet.filename);
+        window.location.href = mode === 'editor' ? 'editor.html' : 'reader.html';
+    } catch (error) {
+        console.error('載入樂譜失敗:', error);
+        alert(error.message || '載入樂譜失敗');
+    }
 }
 
 
@@ -265,15 +318,16 @@ export function renderTagButtons() {
     const sortedNormalTags = Array.from(normalTagCounts.entries()).sort(sortFn);
     const sortedArtistTags = Array.from(artistTagCounts.entries()).sort(sortFn);
 
-    // 渲染普通標籤
+    const normalFragment = document.createDocumentFragment();
     sortedNormalTags.forEach(([tag, count]) => {
-        normalTagButtons.appendChild(createButton(tag, count));
+        normalFragment.appendChild(createButton(tag, count));
     });
-
-    // 渲染作者標籤
+    const artistFragment = document.createDocumentFragment();
     sortedArtistTags.forEach(([tag, count]) => {
-        artistTagButtons.appendChild(createButton(tag, count));
+        artistFragment.appendChild(createButton(tag, count));
     });
+    normalTagButtons.appendChild(normalFragment);
+    artistTagButtons.appendChild(artistFragment);
 }
 
 // 切換標籤選擇
@@ -301,6 +355,7 @@ function clearAllTags() {
         setShowBookmarksOnly(false);
         if (showBookmarksBtn) {
             showBookmarksBtn.classList.remove('active');
+            showBookmarksBtn.setAttribute('aria-pressed', 'false');
         }
     }
     renderTagButtons();
@@ -314,6 +369,7 @@ function clearAllTags() {
 function toggleBookmarkFilter() {
     const isActive = toggleShowBookmarksOnly();
     showBookmarksBtn.classList.toggle('active', isActive);
+    showBookmarksBtn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
 
     // 重新篩選和渲染
     filterSheets();
@@ -421,20 +477,36 @@ function closeLibraryFilterDrawer() {
 
 export function setupEventListeners() {
     if (sortBySelect) initCustomSelect(sortBySelect);
+    decorateSortTrigger();
     syncToolbarPosition();
     syncLibraryHeaderOffset();
     window.addEventListener('resize', () => {
         syncToolbarPosition();
         syncLibraryHeaderOffset();
+        if (libraryView == null) applyLibraryView();
         if (window.innerWidth > MOBILE_BREAKPOINT) {
             closeLibraryFilterDrawer();
         }
+    });
+    libraryViewBtn?.addEventListener('click', toggleLibraryView);
+    bindSheetsContainer();
+    applyLibraryView();
+    document.querySelector('.back-to-top')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
     window.setTimeout(syncLibraryHeaderOffset, 0);
     window.setTimeout(syncLibraryHeaderOffset, 250);
     syncSheetsPathHint();
 
-    searchInput.addEventListener('input', handleSearch);
+    searchInput.addEventListener('input', (e) => {
+        syncSearchExpanded();
+        handleSearch(e);
+    });
+    searchInput.addEventListener('blur', () => {
+        window.setTimeout(syncSearchExpanded, 120);
+    });
+    syncSearchExpanded();
     if (clearTagsBtn) {
         clearTagsBtn.addEventListener('click', clearAllTags);
     }
@@ -450,10 +522,6 @@ export function setupEventListeners() {
     if (showBookmarksBtn) {
         showBookmarksBtn.addEventListener('click', toggleBookmarkFilter);
     }
-    if (selectSheetsFolderBtn) {
-        selectSheetsFolderBtn.addEventListener('click', handleSelectSheetsFolder);
-    }
-
     libraryFilterBtn?.addEventListener('click', openLibraryFilterDrawer);
     libraryFilterBackdrop?.addEventListener('click', closeLibraryFilterDrawer);
     libraryFilterClose?.addEventListener('click', closeLibraryFilterDrawer);
@@ -466,19 +534,22 @@ export function setupEventListeners() {
     if (newBtn && newMenu) {
         newBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            newMenu.classList.toggle('visible');
-            newMenu.setAttribute('aria-hidden', newMenu.classList.contains('visible') ? 'false' : 'true');
+            const isOpen = newMenu.classList.toggle('visible');
+            newMenu.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+            newBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         });
         newMenu.addEventListener('click', (e) => e.stopPropagation());
         document.addEventListener('click', () => {
             newMenu.classList.remove('visible');
             newMenu.setAttribute('aria-hidden', 'true');
+            newBtn.setAttribute('aria-expanded', 'false');
         });
         newMenu.querySelectorAll('.library-new-menu-item').forEach((item) => {
             item.addEventListener('click', () => {
                 const action = item.getAttribute('data-action');
                 newMenu.classList.remove('visible');
                 newMenu.setAttribute('aria-hidden', 'true');
+                newBtn.setAttribute('aria-expanded', 'false');
                 if (action === 'new') {
                     sessionStorage.setItem('currentSheetContent', '');
                     sessionStorage.removeItem('currentFilename');
@@ -487,6 +558,8 @@ export function setupEventListeners() {
                     if (importUrlModal) openModal(importUrlModal);
                 } else if (action === 'importFile' && libraryImportFile) {
                     libraryImportFile.click();
+                } else if (action === 'importFolder') {
+                    handleSelectSheetsFolder();
                 }
             });
         });

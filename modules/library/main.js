@@ -1,5 +1,5 @@
 import { loadSheetLibrary, filterSheets } from './data.js';
-import { setupEventListeners, renderSheets, renderTagButtons, updateStatus, showEmptyState, hideLoadingState, showLoadingState } from './ui.js';
+import { setupEventListeners, renderSheets, renderTagButtons, updateStatus, showEmptyState, hideLoadingState, showLoadingState, syncSearchExpanded, applyLibraryView } from './ui.js';
 import { applyLibraryPrefs } from './persist.js';
 
 // 初始化
@@ -8,6 +8,8 @@ async function init() {
     setupEventListeners();
     const sheets = await loadSheetLibrary();
     applyLibraryPrefs();
+    applyLibraryView();
+    syncSearchExpanded();
     filterSheets();
     renderSheets();
     renderTagButtons();
@@ -19,4 +21,8 @@ async function init() {
 }
 
 // 頁面載入完成後初始化
-window.addEventListener('load', init);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}

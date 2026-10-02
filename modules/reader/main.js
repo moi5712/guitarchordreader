@@ -353,6 +353,7 @@ function init() {
   });
   const tuner = initTuner(tunerBtn, tunerPanel, {
     extraTriggerBtns: [tunerBtnMobile].filter(Boolean),
+    onOpen: () => recordingsController?.close(),
   });
   const metronome = initMetronome({
     bpmMinusBtn: metronomeBpmMinus,
@@ -399,6 +400,7 @@ function init() {
       label: song.meta?.title || song.filename || "未命名樂譜",
     };
   }, {
+    onOpen: () => tuner.close(),
     onBeforeRecord: () => {
       if (tuner.isOpen()) tuner.close();
     },

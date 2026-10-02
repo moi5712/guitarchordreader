@@ -133,10 +133,28 @@ function runUGConvert() {
     renderAlignWarnings(issues, autoAlign);
 }
 
+function initNumberInputs(root = document) {
+    root.querySelectorAll(".input-number").forEach((wrap) => {
+        const input = wrap.querySelector("input[type='number']");
+        if (!input || wrap.dataset.numberBound === "1") return;
+        wrap.dataset.numberBound = "1";
+        wrap.querySelectorAll("[data-dir]").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                if (btn.dataset.dir === "up") input.stepUp();
+                else input.stepDown();
+                input.dispatchEvent(new Event("input", { bubbles: true }));
+                input.dispatchEvent(new Event("change", { bubbles: true }));
+            });
+        });
+    });
+}
+
 export function initEditor() {
     // 設置初始編輯模式
     document.body.classList.add("editor-mode");
     initCustomSelect(document.getElementById("songKey"));
+    initNumberInputs();
 
     let initialContent = sessionStorage.getItem('currentSheetContent') || "";
     let initialFilename = sessionStorage.getItem('currentFilename');

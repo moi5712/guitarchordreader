@@ -21,7 +21,6 @@ function setPlayBtnState(playing) {
   const playBtn = document.getElementById("playBtn");
   if (!playBtn) return;
   playBtn.classList.toggle("is-playing", playing);
-  playBtn.classList.toggle("primary", !playing);
   const label = playing ? "停止播放" : "開始播放";
   playBtn.title = label;
   playBtn.setAttribute("aria-label", label);

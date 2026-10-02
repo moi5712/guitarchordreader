@@ -5,6 +5,7 @@ export let artistTagCounts = new Map();
 export let selectedTags = new Set();
 export let sortBy = 'A-Z';
 export let showBookmarksOnly = false;
+export let libraryView = null;
 
 export function setCurrentSheets(sheets) {
     currentSheets = sheets;
@@ -40,6 +41,10 @@ export function setSortBy(value) {
 
 export function setShowBookmarksOnly(value) {
     showBookmarksOnly = !!value;
+}
+
+export function setLibraryView(value) {
+    libraryView = value === 'list' || value === 'cards' ? value : null;
 }
 
 export function toggleShowBookmarksOnly() {

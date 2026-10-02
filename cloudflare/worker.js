@@ -72,7 +72,7 @@ function rowToSheet(row, bookmarked) {
     } catch (_) {
         tags = [];
     }
-    return {
+    const sheet = {
         filename: row.filename,
         title: row.title || '',
         artist: row.artist || '',
@@ -81,22 +81,31 @@ function rowToSheet(row, bookmarked) {
         capo: row.capo || '',
         tags,
         image: row.image || '',
-        content: row.content,
         lastModified: row.last_modified,
         addedDate: row.added_date,
         size: row.size,
         bookmarked: !!bookmarked,
     };
+    if (row.content != null) sheet.content = row.content;
+    return sheet;
 }
 
 async function listSheets(db) {
     const [sheetRows, bookmarkRows] = await db.batch([
-        db.prepare('SELECT * FROM sheets ORDER BY filename COLLATE NOCASE'),
+        db.prepare('SELECT filename, title, artist, "key", bpm, capo, tags, image, last_modified, added_date, size FROM sheets ORDER BY filename COLLATE NOCASE'),
         db.prepare('SELECT filename FROM bookmarks'),
     ]);
     const bookmarked = new Set((bookmarkRows.results || []).map((r) => r.filename));
     const sheets = (sheetRows.results || []).map((row) => rowToSheet(row, bookmarked.has(row.filename)));
     return { success: true, count: sheets.length, sheets };
+}
+
+async function getSheetByName(db, filename) {
+    const base = normalizeFilename(filename);
+    const row = await db.prepare('SELECT * FROM sheets WHERE filename = ?').bind(base).first();
+    if (!row) throw new ApiError(404, '檔案不存在');
+    const bookmark = await db.prepare('SELECT 1 FROM bookmarks WHERE filename = ?').bind(base).first();
+    return { success: true, sheet: rowToSheet(row, !!bookmark) };
 }
 
 export async function saveSheet(db, filename, content) {
@@ -173,6 +182,11 @@ async function handleApi(request, env, pathname) {
 
     if (pathname === '/api/sheets' && request.method === 'GET') {
         return json(await listSheets(db));
+    }
+
+    if (pathname === '/api/sheet' && request.method === 'GET') {
+        const filename = new URL(request.url).searchParams.get('filename');
+        return json(await getSheetByName(db, filename));
     }
 
     if (pathname === '/api/save-sheet' && request.method === 'POST') {

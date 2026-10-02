@@ -13,9 +13,11 @@
 
     <!-- 頂部工具欄 -->
     <header class="topbar">
-      <a href="/" id="homeBtn" class="btn primary">首頁</a>
-      <button id="editBtn" class="btn">編輯模式</button>
-      <button id="importBtn" class="btn">載入</button>
+      <nav class="topbar-nav" aria-label="頁面">
+        <a href="/" id="homeBtn" class="topbar-nav-item">首頁</a>
+        <button type="button" id="editBtn" class="topbar-nav-item">編輯</button>
+        <button type="button" id="importBtn" class="topbar-nav-item">載入</button>
+      </nav>
 
       <input
         id="importFile"
@@ -25,7 +27,7 @@
       />
 
       <div class="topbar-right" role="group" aria-label="閱讀器控制">
-        <fieldset class="topbar-group topbar-controls topbar-desktop-only" aria-label="顯示設定">
+        <fieldset class="topbar-group topbar-controls topbar-desktop-only" aria-label="數值設定">
           <label class="tiny" for="fontPx">字級</label>
           <div class="control-group">
             <button id="fontPxMinus" type="button" class="control-step-btn" title="縮小字級" aria-label="縮小字級">−</button>
@@ -88,13 +90,6 @@
               </svg>
             </button>
           </div>
-          <label class="btn-icon topbar-toggle-btn" for="showFingering" title="指法">
-            <input id="showFingering" type="checkbox" class="topbar-toggle-input" />
-            <span>指法</span>
-          </label>
-        </fieldset>
-
-        <fieldset class="topbar-group topbar-controls topbar-desktop-only" aria-label="演奏設定">
           <label class="tiny" for="metronomeBpmDisplay">拍速</label>
           <div class="control-group">
             <button id="metronomeBpmMinus" type="button" class="control-step-btn" title="減慢 BPM" aria-label="減慢 BPM">−</button>
@@ -115,19 +110,26 @@
               </svg>
             </button>
           </div>
+        </fieldset>
+
+        <fieldset class="topbar-group topbar-controls topbar-desktop-only" aria-label="開關設定">
+          <label class="btn-icon topbar-toggle-btn" for="showFingering" title="指法">
+            <input id="showFingering" type="checkbox" class="topbar-toggle-input" />
+            <span>指法</span>
+          </label>
           <label class="btn-icon topbar-toggle-btn" for="countdownEnabled" title="預備拍">
             <input id="countdownEnabled" type="checkbox" class="topbar-toggle-input" />
             <span>預備拍</span>
           </label>
+          <button id="metronomeBtn" class="btn-icon" type="button" title="節拍器" aria-pressed="false">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 11.4V9.1" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="m12 17 6.59-6.59" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="m15.05 5.7-.218-.691a3 3 0 0 0-5.663 0L4.418 19.695A1 1 0 0 0 5.37 21h13.253a1 1 0 0 0 .951-1.31L18.45 16.2" />
+              <circle cx="20" cy="9" r="2" />
+            </svg>
+          </button>
         </fieldset>
-        <button id="metronomeBtn" class="btn-icon topbar-desktop-only" type="button" title="節拍器" aria-pressed="false">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 11.4V9.1" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="m12 17 6.59-6.59" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="m15.05 5.7-.218-.691a3 3 0 0 0-5.663 0L4.418 19.695A1 1 0 0 0 5.37 21h13.253a1 1 0 0 0 .951-1.31L18.45 16.2" />
-            <circle cx="20" cy="9" r="2" />
-          </svg>
-        </button>
         <!-- 手機版設定按鈕 -->
         <button
           id="mobileSettingsBtn"
@@ -260,7 +262,7 @@
           <button id="mobileSettingsClose" class="btn-icon mobile-sheet-close" type="button" aria-label="關閉">✕</button>
         </div>
         <div class="mobile-sheet-body">
-          <p class="mobile-sheet-section">顯示</p>
+          <p class="mobile-sheet-section">數值</p>
           <div class="mobile-sheet-row">
             <span class="mobile-sheet-label">字級</span>
             <div class="control-group">
@@ -299,11 +301,6 @@
               </button>
             </div>
           </div>
-          <div class="mobile-sheet-row mobile-sheet-row--toggle">
-            <span class="mobile-sheet-label" id="mobileFingeringLabel">指法</span>
-            <label class="mobile-sheet-switch mobile-sheet-toggle" for="showFingering" title="指法" aria-labelledby="mobileFingeringLabel"></label>
-          </div>
-          <p class="mobile-sheet-section">演奏</p>
           <div class="mobile-sheet-row">
             <span class="mobile-sheet-label">拍速</span>
             <div class="control-group">
@@ -317,6 +314,11 @@
                 </svg>
               </button>
             </div>
+          </div>
+          <p class="mobile-sheet-section">開關</p>
+          <div class="mobile-sheet-row mobile-sheet-row--toggle">
+            <span class="mobile-sheet-label" id="mobileFingeringLabel">指法</span>
+            <label class="mobile-sheet-switch mobile-sheet-toggle" for="showFingering" title="指法" aria-labelledby="mobileFingeringLabel"></label>
           </div>
           <div class="mobile-sheet-row mobile-sheet-row--toggle">
             <span class="mobile-sheet-label" id="mobileCountdownLabel">預備拍</span>

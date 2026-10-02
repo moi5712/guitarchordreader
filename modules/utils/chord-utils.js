@@ -168,7 +168,7 @@ export function createChordDiagram(chord, options = {}) {
     const displayHeight = +(height * safeScale).toFixed(2);
   
     let svg = `<svg width="${displayWidth}" height="${displayHeight}" viewBox="0 0 ${width} ${height}" class="chord-diagram chord-diagram-inline">`;
-    svg += `<text x="${width/2-2}" y="14" text-anchor="middle" font-size="16" font-weight="bold" fill="#333" class="chord-diagram-title">${transposedChord}</text>`;//和弦文字
+    svg += `<text x="${width/2-2}" y="14" text-anchor="middle" font-size="16" font-weight="bold" fill="currentColor" class="chord-diagram-title">${transposedChord}</text>`;//和弦文字
   
     if (startFret > 1) {
       svg += `<text x="3" y="${fretStartY + fretHeight/2 + 4}" text-anchor="middle" font-size="14" font-weight="bold" fill="#000">${startFret}</text>`;

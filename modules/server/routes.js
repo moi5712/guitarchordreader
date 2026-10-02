@@ -56,11 +56,25 @@ function handleRequest(req, res) {
         return;
     }
 
-    // API 端點：獲取樂譜列表
+    // API 端點：獲取樂譜列表（不含內文，加快首頁）
     if (pathname === '/api/sheets') {
         const result = api.getSheetsData();
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(result, null, 2));
+        res.end(JSON.stringify(result));
+        return;
+    }
+
+    if (pathname === '/api/sheet') {
+        try {
+            const filename = parsedUrl.query.filename;
+            const result = api.getSheetData(filename);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(result));
+        } catch (error) {
+            const code = error.statusCode || (error.message === '缺少檔名' || error.message === '檔名不合法' ? 400 : error.message === '檔案不存在' ? 404 : 500);
+            res.writeHead(code, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: error.message }));
+        }
         return;
     }
 

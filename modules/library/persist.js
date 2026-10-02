@@ -2,8 +2,10 @@ import {
   selectedTags,
   setSortBy,
   setShowBookmarksOnly,
+  setLibraryView,
   replaceSelectedTags,
   showBookmarksOnly,
+  libraryView,
 } from "./state.js";
 
 const KEY = "libraryPrefs";
@@ -29,6 +31,7 @@ export function saveLibraryPrefs() {
       JSON.stringify({
         search: searchInput ? searchInput.value : "",
         sortBy: sortBySelect ? sortBySelect.value : "A-Z",
+        libraryView: libraryView === "list" || libraryView === "cards" ? libraryView : undefined,
         selectedTags: Array.from(selectedTags),
         showBookmarksOnly,
       })
@@ -54,6 +57,9 @@ export function applyLibraryPrefs() {
     sortBySelect.value = p.sortBy;
     setSortBy(p.sortBy);
   }
+  if (p.libraryView === "list" || p.libraryView === "cards") {
+    setLibraryView(p.libraryView);
+  }
   if (Array.isArray(p.selectedTags)) {
     replaceSelectedTags(p.selectedTags);
   }
@@ -61,6 +67,7 @@ export function applyLibraryPrefs() {
     setShowBookmarksOnly(p.showBookmarksOnly);
     if (showBookmarksBtn) {
       showBookmarksBtn.classList.toggle("active", p.showBookmarksOnly);
+      showBookmarksBtn.setAttribute("aria-pressed", p.showBookmarksOnly ? "true" : "false");
     }
   }
 }

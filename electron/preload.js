@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   getSheets: () => ipcRenderer.invoke('api:getSheets'),
+  getSheet: (filename) => ipcRenderer.invoke('api:getSheet', filename),
   getSheetsPath: () => ipcRenderer.invoke('api:getSheetsPath'),
   selectSheetsFolder: () => ipcRenderer.invoke('api:selectSheetsFolder'),
   openSheetsFolder: () => ipcRenderer.invoke('api:openSheetsFolder'),

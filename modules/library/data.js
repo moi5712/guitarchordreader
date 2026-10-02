@@ -1,11 +1,7 @@
 import { API_BASE } from "../config/api.js";
-import { parseSheetMeta } from "../utils/parser-utils.js";
 import { getOpenCount, getSheetUsage } from "./usage.js";
 import {
   currentSheets,
-  filteredSheets,
-  normalTagCounts,
-  artistTagCounts,
   selectedTags,
   sortBy,
   setCurrentSheets,
@@ -63,7 +59,6 @@ async function autoScanSheetsFolder() {
     if (typeof window !== 'undefined' && window.electronAPI?.getSheets) {
       const data = await window.electronAPI.getSheets();
       if (data && data.sheets) {
-        console.log(`Electron API :掃描完成，${data.sheets.length} 首樂譜`);
         return data.sheets;
       }
       return [];
@@ -75,15 +70,14 @@ async function autoScanSheetsFolder() {
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.sheets) {
-          console.log(`Node.js API :掃描完成，${data.count} 首樂譜`);
           return data.sheets;
         }
       }
     } catch (apiError) {
-      console.log("Node.js API :掃描失敗", apiError);
+      console.warn("載入樂譜列表失敗", apiError);
     }
   } catch (error) {
-    console.log("讀取失敗", error);
+    console.warn("讀取樂譜庫失敗", error);
   }
 
   return [];
@@ -128,6 +122,21 @@ function collectTags() {
   });
   setNormalTagCounts(newNormalTagCounts);
   setArtistTagCounts(newArtistTagCounts);
+}
+
+export async function fetchSheet(filename) {
+  if (!filename) throw new Error("缺少檔名");
+  if (typeof window !== "undefined" && window.electronAPI?.getSheet) {
+    const data = await window.electronAPI.getSheet(filename);
+    if (data?.sheet) return data.sheet;
+    throw new Error(data?.error || "載入樂譜失敗");
+  }
+  const response = await fetch(
+    API_BASE + "/api/sheet?filename=" + encodeURIComponent(filename)
+  );
+  const data = await response.json();
+  if (data.success && data.sheet) return data.sheet;
+  throw new Error(data.error || "載入樂譜失敗");
 }
 
 // --- 更新書籤 --- 

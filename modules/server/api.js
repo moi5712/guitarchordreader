@@ -15,6 +15,16 @@ function getSheetsData() {
     return store.listSheets();
 }
 
+function getSheetData(filename) {
+    const sheet = store.getSheet(filename);
+    if (!sheet) {
+        const error = new Error('檔案不存在');
+        error.statusCode = 404;
+        throw error;
+    }
+    return { success: true, sheet };
+}
+
 function setBookmark(filename, bookmarked) {
     store.setBookmark(filename, bookmarked);
 }
@@ -42,6 +52,7 @@ function importFolder(sheetsDir, bookmarksFile) {
 module.exports = {
     getBookmarks,
     getSheetsData,
+    getSheetData,
     setBookmark,
     saveSheet,
     deleteSheet,

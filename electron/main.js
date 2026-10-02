@@ -152,6 +152,10 @@ app.whenReady().then(() => {
     return api.getSheetsData();
   });
 
+  ipcMain.handle('api:getSheet', (_event, filename) => {
+    return api.getSheetData(filename);
+  });
+
   ipcMain.handle('api:getSheetsPath', () => store.getDbPath());
   ipcMain.handle('api:openSheetsFolder', () => {
     const dir = path.dirname(store.getDbPath());

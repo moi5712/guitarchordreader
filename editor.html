@@ -35,87 +35,84 @@
           placeholder="https://www.ufret.jp/song.php?data=..."
         ></textarea>
         <div class="modal-actions">
-          <button id="importUrlConfirmBtn" class="btn primary">導入</button>
           <button id="importUrlCancelBtn" class="btn secondary">取消</button>
+          <button id="importUrlConfirmBtn" class="btn primary">導入</button>
         </div>
       </div>
     </div>
 
     <!-- 頂部工具欄 -->
     <header class="topbar">
-      <!-- 導航 -->
-      <a href="/" id="homeBtn" class="btn primary">首頁</a>
-      <button id="playBtn" class="btn">演奏模式</button>
+      <nav class="topbar-nav" aria-label="頁面">
+        <a href="/" id="homeBtn" class="topbar-nav-item">首頁</a>
+        <button type="button" id="playBtn" class="topbar-nav-item">演奏</button>
+      </nav>
 
-      <div class="sp"></div>
+      <div class="topbar-right" role="group" aria-label="編輯器控制">
+        <fieldset class="topbar-group" aria-label="歷史操作">
+          <button id="undoBtn" class="btn-icon" type="button" title="復原 (Ctrl+Z)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+          </button>
+          <button id="redoBtn" class="btn-icon" type="button" title="重做 (Ctrl+Y)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"/></svg>
+          </button>
+        </fieldset>
 
-      <!-- 歷史操作 -->
-      <button id="undoBtn" class="btn-icon" title="復原 (Ctrl+Z)">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
-      </button>
-      <button id="redoBtn" class="btn-icon" title="重做 (Ctrl+Y)">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"/></svg>
-      </button>
+        <fieldset class="topbar-group desktop-only-icon" aria-label="樂譜轉換">
+          <button id="ugConvertBtn" class="btn-icon" type="button" title="轉換樂譜">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>
+          </button>
+          <label class="btn-icon topbar-toggle-btn" for="ugAutoAlign" title="自動對齊">
+            <input id="ugAutoAlign" type="checkbox" class="topbar-toggle-input" checked />
+            <span>對齊音節</span>
+          </label>
+        </fieldset>
 
-      <div class="divider"></div>
+        <fieldset class="topbar-group" aria-label="檔案操作">
+          <button id="newBtn" class="btn-icon desktop-only-icon" type="button" title="新建">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+          </button>
+          <button id="importUrlBtn" class="btn-icon desktop-only-icon" type="button" title="從網址導入">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+            </svg>
+          </button>
+          <button id="importBtn" class="btn-icon desktop-only-icon" type="button" title="載入">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+          </button>
+          <input id="importFile" type="file" accept=".txt,.gtab" class="hidden" />
+          <button id="exportBtn" class="btn-icon desktop-only-icon" type="button" title="匯出">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+            </svg>
+          </button>
+          <button id="saveBtn" class="btn-icon" type="button" title="儲存">
+            <svg role="img" xmlns="http://www.w3.org/2000/svg" width="48px" height="48px" viewBox="0 0 24 24" aria-labelledby="saveIconTitle" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" color="currentColor">
+              <path d="M17.2928932,3.29289322 L21,7 L21,20 C21,20.5522847 20.5522847,21 20,21 L4,21 C3.44771525,21 3,20.5522847 3,20 L3,4 C3,3.44771525 3.44771525,3 4,3 L16.5857864,3 C16.8510029,3 17.1053568,3.10535684 17.2928932,3.29289322 Z" />
+              <rect width="10" height="8" x="7" y="13" />
+              <rect width="8" height="5" x="8" y="3" />
+            </svg>
+          </button>
+        </fieldset>
 
-      <!-- UG 轉換 -->
-      <div class="topbar-ug-group desktop-only-icon">
-        <button id="ugConvertBtn" class="btn-icon" title="轉換樂譜">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>
+        <fieldset class="topbar-group desktop-only-icon" aria-label="危險操作">
+          <button id="clearBtn" class="btn-icon danger" type="button" title="從樂譜庫刪除此樂譜">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+            </svg>
+          </button>
+        </fieldset>
+
+        <button id="editorMobileSettingsBtn" class="btn-icon mobile-only" type="button" title="更多">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+          </svg>
         </button>
-        <label class="btn-icon topbar-toggle-btn" for="ugAutoAlign" title="自動對齊">
-          <input id="ugAutoAlign" type="checkbox" class="topbar-toggle-input" checked />
-          <span>對齊音節</span>
-        </label>
       </div>
-
-      <div class="divider desktop-only-icon"></div>
-
-      <!-- 檔案操作 -->
-      <button id="newBtn" class="btn-icon desktop-only-icon" title="新建">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-      </button>
-      <button id="importUrlBtn" class="btn-icon desktop-only-icon" title="從網址導入">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-        </svg>
-      </button>
-      <button id="importBtn" class="btn-icon desktop-only-icon" title="載入">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-        </svg>
-      </button>
-      <input id="importFile" type="file" accept=".txt,.gtab" class="hidden" />
-      <button id="exportBtn" class="btn-icon desktop-only-icon" title="匯出">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-        </svg>
-      </button>
-      <button id="saveBtn" class="btn-icon" title="儲存">
-        <svg role="img" xmlns="http://www.w3.org/2000/svg" width="48px" height="48px" viewBox="0 0 24 24" aria-labelledby="saveIconTitle" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" color="currentColor">
-          <path d="M17.2928932,3.29289322 L21,7 L21,20 C21,20.5522847 20.5522847,21 20,21 L4,21 C3.44771525,21 3,20.5522847 3,20 L3,4 C3,3.44771525 3.44771525,3 4,3 L16.5857864,3 C16.8510029,3 17.1053568,3.10535684 17.2928932,3.29289322 Z" />
-          <rect width="10" height="8" x="7" y="13" />
-          <rect width="8" height="5" x="8" y="3" />
-        </svg>
-      </button>
-
-      <!-- 危險操作（桌面）-->
-      <div class="divider desktop-only-icon"></div>
-      <button id="clearBtn" class="btn-icon danger desktop-only-icon" title="從樂譜庫刪除此樂譜">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-        </svg>
-      </button>
-
-      <!-- 手機：更多選項 -->
-      <button id="editorMobileSettingsBtn" class="btn-icon mobile-only" title="更多">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-        </svg>
-      </button>
     </header>
 
     <main class="wrap">
@@ -178,25 +175,45 @@
               </div>
               <div class="form-group">
                 <label class="form-label">BPM</label>
-                <input
-                  id="songBpm"
-                  class="input"
-                  type="number"
-                  placeholder="120"
-                  min="60"
-                  max="200"
-                />
+                <div class="input-number">
+                  <input
+                    id="songBpm"
+                    class="input"
+                    type="number"
+                    placeholder="120"
+                    min="60"
+                    max="200"
+                  />
+                  <div class="input-number-spinners">
+                    <button type="button" class="input-number-spin" data-dir="up" tabindex="-1" aria-label="增加">
+                      <svg viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6 L6 2 L10 6"/></svg>
+                    </button>
+                    <button type="button" class="input-number-spin" data-dir="down" tabindex="-1" aria-label="減少">
+                      <svg viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 2 L6 6 L10 2"/></svg>
+                    </button>
+                  </div>
+                </div>
               </div>
               <div class="form-group">
                 <label class="form-label">Capo</label>
-                <input
-                  id="songCapo"
-                  class="input"
-                  type="number"
-                  placeholder="0"
-                  min="-2"
-                  max="12"
-                />
+                <div class="input-number">
+                  <input
+                    id="songCapo"
+                    class="input"
+                    type="number"
+                    placeholder="0"
+                    min="-2"
+                    max="12"
+                  />
+                  <div class="input-number-spinners">
+                    <button type="button" class="input-number-spin" data-dir="up" tabindex="-1" aria-label="增加">
+                      <svg viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6 L6 2 L10 6"/></svg>
+                    </button>
+                    <button type="button" class="input-number-spin" data-dir="down" tabindex="-1" aria-label="減少">
+                      <svg viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 2 L6 6 L10 2"/></svg>
+                    </button>
+                  </div>
+                </div>
               </div>
               <div class="form-group">
                 <label class="form-label">封面圖片</label>
@@ -320,23 +337,30 @@
 
     <!-- 手機版設定彈窗 -->
     <div id="editorMobileSettingsModal" class="modal-overlay hidden">
-      <div class="modal-content">
+      <div class="modal-content editor-settings-modal">
+        <div class="editor-settings-modal-header">
+          <h2 class="modal-title">更多</h2>
+        </div>
         <div class="modal-body editor-settings-modal-body">
-          <button id="modalImportUrlBtn" class="btn">從連結導入</button>
-          <button id="modalImportBtn" class="btn">從本地導入</button>
-          <button id="modalExportBtn" class="btn">導出到本地</button>
-          <button id="modalNewBtn" class="btn">新建</button>
-          <button id="modalUgConvertBtn" class="btn" title="轉換樂譜">轉換樂譜</button>
-          <label class="ug-auto-align-label modal-ug-align" title="自動對齊">
-            <input type="checkbox" id="modalUgAutoAlign" checked />
-            對齊音節
-          </label>
-          <button id="modalClearBtn" class="btn danger">刪除樂譜</button>
+          <p class="editor-settings-section">檔案</p>
+          <div class="editor-settings-grid">
+            <button id="modalImportUrlBtn" class="btn" type="button">從連結導入</button>
+            <button id="modalImportBtn" class="btn" type="button">從本地導入</button>
+            <button id="modalExportBtn" class="btn" type="button">導出到本地</button>
+            <button id="modalNewBtn" class="btn" type="button">新建</button>
+            <button id="modalClearBtn" class="btn danger" type="button">刪除樂譜</button>
+          </div>
+          <p class="editor-settings-section">轉換</p>
+          <div class="editor-settings-toggle-row">
+            <span class="editor-settings-toggle-label" id="modalUgAlignLabel">對齊音節</span>
+            <label class="mobile-sheet-switch" title="自動對齊" aria-labelledby="modalUgAlignLabel">
+              <input type="checkbox" id="modalUgAutoAlign" class="visually-hidden" checked />
+            </label>
+          </div>
+          <button id="modalUgConvertBtn" class="btn" type="button" title="轉換樂譜">轉換樂譜</button>
         </div>
         <div class="modal-footer">
-          <button id="editorMobileSettingsCancel" class="btn primary">
-            關閉
-          </button>
+          <button id="editorMobileSettingsCancel" class="btn" type="button">關閉</button>
         </div>
       </div>
     </div>

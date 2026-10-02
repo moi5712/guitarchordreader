@@ -202,7 +202,9 @@ export function initCustomSelect(selectEl) {
         valueSpan.textContent = selected ? selected.text : '';
         valueSpan.classList.toggle('is-placeholder', !selected || selected.value === '');
         dropdown.querySelectorAll('.custom-select-option').forEach(li => {
-            li.classList.toggle('is-selected', li.dataset.value === selectEl.value);
+            const selected = li.dataset.value === selectEl.value;
+            li.classList.toggle('is-selected', selected);
+            li.setAttribute('aria-selected', selected ? 'true' : 'false');
         });
     }
 

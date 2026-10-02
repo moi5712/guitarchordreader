@@ -131,7 +131,20 @@
         var sheets = await dbGetAll();
         var bookmarks = getBookmarkList();
         sheets = sheets.map(function (s) {
-          return Object.assign({}, s, { bookmarked: bookmarks.indexOf(s.filename) !== -1 });
+          return {
+            filename: s.filename,
+            title: s.title || '',
+            artist: s.artist || '',
+            key: s.key || '',
+            bpm: s.bpm || '',
+            capo: s.capo || '',
+            tags: s.tags || [],
+            image: s.image || '',
+            lastModified: s.lastModified,
+            addedDate: s.addedDate,
+            size: s.size,
+            bookmarked: bookmarks.indexOf(s.filename) !== -1
+          };
         });
         sheets.sort(function (a, b) {
           return (a.filename || '').localeCompare(b.filename || '');
@@ -140,6 +153,23 @@
       } catch (e) {
         console.error('[Bridge] getSheets 失敗:', e);
         return { success: false, error: e.message, sheets: [] };
+      }
+    },
+
+    getSheet: async function (filename) {
+      try {
+        var sheet = await dbGet(filename);
+        if (!sheet) return { success: false, error: '檔案不存在' };
+        var bookmarks = getBookmarkList();
+        return {
+          success: true,
+          sheet: Object.assign({}, sheet, {
+            bookmarked: bookmarks.indexOf(sheet.filename) !== -1
+          })
+        };
+      } catch (e) {
+        console.error('[Bridge] getSheet 失敗:', e);
+        return { success: false, error: e.message };
       }
     },
 

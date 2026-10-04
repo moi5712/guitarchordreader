@@ -30,7 +30,7 @@ export function loadChordFingerings() {
         setDefaultChordFingerings(normalizeChordFingerings(data));
         return;
       }
-      const res = await fetch("/chords.json", { cache: "no-store" });
+      const res = await fetch("/chords.json");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setDefaultChordFingerings(normalizeChordFingerings(data));

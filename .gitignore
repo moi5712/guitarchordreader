@@ -17,3 +17,6 @@ data/
 .cf-dist/
 .wrangler/
 cloudflare/seed.sql
+
+# 本機 UI 驗證快取
+.tmp-ui-verify/

@@ -87,7 +87,9 @@
       "!**/*.md",
       "!cloudflare",
       "!.cf-dist",
-      "!wrangler.jsonc"
+      "!wrangler.jsonc",
+      "!.tmp-ui-verify/**",
+      "!android/**"
     ],
     "win": {
       "target": "nsis",

@@ -18,6 +18,30 @@ async function init() {
         showEmptyState();
     }
     hideLoadingState();
+    prefetchSheetPages();
+}
+
+function prefetchSheetPages() {
+    const hrefs = [
+        "/reader.html",
+        "/editor.html",
+        "/chords.json",
+        "/modules/reader/main.js",
+        "/modules/editor/ui.js",
+    ];
+    const run = () => {
+        hrefs.forEach((href) => {
+            const link = document.createElement("link");
+            link.rel = "prefetch";
+            link.href = href;
+            document.head.appendChild(link);
+        });
+    };
+    if (typeof requestIdleCallback === "function") {
+        requestIdleCallback(run, { timeout: 1500 });
+    } else {
+        setTimeout(run, 200);
+    }
 }
 
 // 頁面載入完成後初始化

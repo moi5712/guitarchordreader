@@ -6,7 +6,7 @@ import { saveToHistory, undo, redo } from './history.js';
 import { insertChord, insertSection } from './textarea.js';
 import { addCustomChord, loadCustomChords, loadCustomChordsFromText, initFingeringDiagram } from './custom-chords.js';
 import { newDocument, exportDocument, importDocument, saveToSheetsFolder, importFromUrl, setCurrentFilename, getCurrentFilename, deleteSheetFromLibrary } from './io.js';
-import { convertUGToChordPro, collectAlignmentIssues } from './ug-converter.js';
+import { getRequestedFilename, readCachedSheet, resolveOpenSheet, clearUrlSheetParam } from '../open-sheet.js';
 
 async function updateMetaInfo() {
     const title = document.getElementById("songTitle").value;
@@ -105,7 +105,8 @@ function renderAlignWarnings(issues, autoAlign) {
     panel.classList.remove("hidden");
 }
 
-function runUGConvert() {
+async function runUGConvert() {
+    const { convertUGToChordPro, collectAlignmentIssues } = await import('./ug-converter.js');
     const textarea = document.getElementById("editorTextarea");
     const content = textarea.value;
     const lines = content.split('\n');
@@ -150,57 +151,84 @@ function initNumberInputs(root = document) {
     });
 }
 
-export function initEditor() {
-    // 設置初始編輯模式
+function applyEditorSheet(content, filename) {
+    setCurrentFilename(filename || null);
+    document.getElementById("editorTextarea").value = content || "";
+    sessionStorage.setItem("currentSheetContent", content || "");
+
+    ["songTitle", "songArtist", "songTags", "songKey", "songBpm", "songCapo", "songImg"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+    });
+
+    if (!content) return;
+    const meta = parseSheetMeta(content);
+    if (meta.title) document.getElementById("songTitle").value = meta.title;
+    if (meta.artist) document.getElementById("songArtist").value = meta.artist;
+    if (meta.tags) {
+        document.getElementById("songTags").value = Array.isArray(meta.tags)
+            ? meta.tags.join(", ")
+            : meta.tags;
+    }
+    if (meta.key) document.getElementById("songKey").value = meta.key;
+    if (meta.bpm) document.getElementById("songBpm").value = meta.bpm;
+    if (meta.capo) document.getElementById("songCapo").value = meta.capo;
+    if (meta.image) document.getElementById("songImg").value = meta.image;
+    loadCustomChordsFromText(content);
+}
+
+function buildEditorPalettes() {
+    const sectionGrid = document.getElementById("sectionGrid");
+    if (sectionGrid && sectionGrid.childElementCount === 0) {
+        SECTION_TYPES.forEach((section) => {
+            const btn = document.createElement("button");
+            btn.className = `section-btn ${section.class}`;
+            btn.textContent = section.name;
+            btn.onclick = () => insertSection(section.key);
+            sectionGrid.appendChild(btn);
+        });
+    }
+
+    const chordGrid = document.getElementById("chordGrid");
+    if (chordGrid && chordGrid.childElementCount === 0) {
+        COMMON_CHORDS.forEach((chord) => {
+            const btn = document.createElement("button");
+            btn.className = "chord-btn";
+            btn.textContent = chord;
+            btn.onclick = () => insertChord(chord);
+            chordGrid.appendChild(btn);
+        });
+    }
+}
+
+export async function initEditor() {
     document.body.classList.add("editor-mode");
     initCustomSelect(document.getElementById("songKey"));
     initNumberInputs();
 
-    let initialContent = sessionStorage.getItem('currentSheetContent') || "";
-    let initialFilename = sessionStorage.getItem('currentFilename');
-    setCurrentFilename(initialFilename || null);
-
-    // 更新文本區和暫存區
-    document.getElementById("editorTextarea").value = initialContent;
-    sessionStorage.setItem("currentSheetContent", initialContent);
-
-    // 從載入的內容更新歌曲資訊
-    if (initialContent) {
-        const meta = parseSheetMeta(initialContent);
-        if (meta.title) document.getElementById("songTitle").value = meta.title;
-        if (meta.artist) document.getElementById("songArtist").value = meta.artist;
-        if (meta.tags) document.getElementById("songTags").value = meta.tags;
-        if (meta.key) document.getElementById("songKey").value = meta.key;
-        if (meta.bpm) document.getElementById("songBpm").value = meta.bpm;
-        if (meta.capo) document.getElementById("songCapo").value = meta.capo;
-        if (meta.image) document.getElementById("songImg").value = meta.image;
-        loadCustomChordsFromText(initialContent);
+    const filename = getRequestedFilename();
+    const cached = readCachedSheet(filename);
+    try {
+        if (cached) {
+            applyEditorSheet(cached.content, cached.filename);
+        } else if (filename) {
+            const sheet = await resolveOpenSheet();
+            applyEditorSheet(sheet.content, sheet.filename);
+        } else {
+            applyEditorSheet(
+                sessionStorage.getItem("currentSheetContent") || "",
+                sessionStorage.getItem("currentFilename")
+            );
+        }
+    } catch (error) {
+        console.error("載入樂譜失敗:", error);
+        applyEditorSheet("", filename || null);
     }
 
-    // 清理舊的URL參數（以防萬一）
-    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-    if (window.location.href !== cleanUrl) {
-        window.history.replaceState({}, document.title, cleanUrl);
-    }
-
-    // 生成段落按鈕
-    const sectionGrid = document.getElementById("sectionGrid");
-    SECTION_TYPES.forEach((section) => {
-        const btn = document.createElement("button");
-        btn.className = `section-btn ${section.class}`;
-        btn.textContent = section.name;
-        btn.onclick = () => insertSection(section.key);
-        sectionGrid.appendChild(btn);
-    });
-
-    // 生成和弦按鈕
-    const chordGrid = document.getElementById("chordGrid");
-    COMMON_CHORDS.forEach((chord) => {
-        const btn = document.createElement("button");
-        btn.className = "chord-btn";
-        btn.textContent = chord;
-        btn.onclick = () => insertChord(chord);
-        chordGrid.appendChild(btn);
+    clearUrlSheetParam();
+    requestAnimationFrame(() => {
+        buildEditorPalettes();
+        initFingeringDiagram();
     });
 
     saveToHistory();
@@ -344,7 +372,6 @@ export function initEditor() {
 
     // 載入已保存的自定義和弦
     loadCustomChords();
-    initFingeringDiagram();
 
     // 儲存按鈕事件
     const saveBtn = document.getElementById("saveBtn");

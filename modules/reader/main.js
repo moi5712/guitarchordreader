@@ -8,6 +8,7 @@ import { loadDockState } from './dock-state.js';
 import { initMetronome } from './metronome.js';
 import { loadChordFingerings } from '../load-chord-fingerings.js';
 import { observeTopbarHeight } from '../utils/ui-utils.js';
+import { getRequestedFilename, readCachedSheet, resolveOpenSheet, clearUrlSheetParam } from '../open-sheet.js';
 
 let recordingsController = null;
 
@@ -414,35 +415,66 @@ function init() {
   const dockState = loadDockState();
   if (dockState.tuner) tuner.open();
 
-  render();
-  collectTargets();
   observeTopbarHeight();
 }
 
-window.addEventListener('load', () => {
-    loadChordFingerings().then(() => {
-    init();
+function showScoreLoading() {
+  const score = document.getElementById("score");
+  if (!score) return;
+  score.classList.remove("has-content");
+  score.innerHTML = `
+    <div class="score-empty-tip">
+      <div class="score-empty-tip-title">載入中</div>
+    </div>`;
+}
 
-    const contentToLoad = sessionStorage.getItem('currentSheetContent');
-    const filenameToLoad = sessionStorage.getItem('currentFilename');
+async function boot() {
+  init();
 
-    if (contentToLoad) {
-        importScore(contentToLoad, filenameToLoad);
-        render();
-        collectTargets();
-        if (loadDockState().recordings) {
-          void recordingsController?.open();
-        }
+  const filename = getRequestedFilename();
+  const cached = readCachedSheet(filename);
+  try {
+    if (cached?.content) {
+      importScore(cached.content, cached.filename);
+    } else if (filename) {
+      showScoreLoading();
+      const sheet = await resolveOpenSheet();
+      if (sheet.content) importScore(sheet.content, sheet.filename);
     }
+  } catch (err) {
+    console.error("載入樂譜失敗:", err);
+  }
 
-    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-    if (window.location.href !== cleanUrl) {
-        window.history.replaceState({}, document.title, cleanUrl);
-    }
-    }).catch((err) => {
-      console.error("閱讀器初始化失敗:", err);
-    });
+  render();
+  collectTargets();
+  clearUrlSheetParam();
+  if (loadDockState().recordings) {
+    void recordingsController?.open();
+  }
+}
+
+const fingeringsReady = loadChordFingerings();
+fingeringsReady.then(() => {
+  if (!song.originalContent) return;
+  if (document.getElementById("showFingering")?.checked) {
+    render();
+    collectTargets();
+  }
+}).catch((err) => {
+  console.warn("指法庫載入失敗:", err);
 });
+
+function startBoot() {
+  boot().catch((err) => {
+    console.error("閱讀器初始化失敗:", err);
+  });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", startBoot);
+} else {
+  startBoot();
+}
 
 // When the user navigates back and forth, ensure the content is up-to-date
 function reloadIfSessionChanged() {

@@ -223,17 +223,20 @@ function createSheetCard(sheet) {
     return card;
 }
 
-// 依模式跳轉閱讀或編輯
-async function navigateToSheet(filename, mode) {
-    try {
-        const sheet = await fetchSheet(filename);
-        sessionStorage.setItem('currentSheetContent', sheet.content || '');
-        sessionStorage.setItem('currentFilename', sheet.filename);
-        window.location.href = mode === 'editor' ? 'editor.html' : 'reader.html';
-    } catch (error) {
-        console.error('載入樂譜失敗:', error);
-        alert(error.message || '載入樂譜失敗');
+// 依模式跳轉閱讀或編輯：先開頁，內容由目標頁並行載入
+function navigateToSheet(filename, mode) {
+    if (!filename) return;
+    const dest = mode === 'editor' ? 'editor.html' : 'reader.html';
+    if (sessionStorage.getItem('currentFilename') !== filename) {
+        sessionStorage.removeItem('currentSheetContent');
+        sessionStorage.setItem('currentFilename', filename);
     }
+    fetchSheet(filename).then((sheet) => {
+        if (sessionStorage.getItem('currentFilename') !== filename) return;
+        sessionStorage.setItem('currentSheetContent', sheet.content || '');
+        sessionStorage.setItem('currentFilename', sheet.filename || filename);
+    }).catch(() => {});
+    window.location.href = `${dest}?f=${encodeURIComponent(filename)}`;
 }
 
 

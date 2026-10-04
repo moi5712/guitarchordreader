@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>吉他譜編輯器</title>
     <link rel="stylesheet" href="/styles.css" />
+    <link rel="modulepreload" href="/modules/editor/ui.js" />
     <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   </head>
   <body>
@@ -369,7 +370,7 @@
     <script src="/modules/capacitor-bridge.js"></script>
     <script type="module">
       import { initEditor } from "/modules/editor/ui.js";
-      initEditor();
+      initEditor().catch((err) => console.error("編輯器初始化失敗:", err));
     </script>
   </body>
 </html>
